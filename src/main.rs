@@ -21,6 +21,8 @@ fn build_gui(app: &Application){
     // This is equivalent.
     //let mut plotvals = vec![(10.0, 0.0), (5.0, 5.0), (8.0, 7.0)];
 
+    // Use a "closure" (anonymous function?) as the drawing area draw_func.
+    // We pass a strong reference to the plot data (aka plotvals).
     drawing_area.set_draw_func(clone!(#[strong] plotvals, move |_drawing_area, cr, width, height| {
         // --- 🎨 Custom Drawing Logic Starts Here ---
  
