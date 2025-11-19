@@ -13,7 +13,7 @@ fn build_gui(app: &Application){
     let win = ApplicationWindow::builder().application(app).default_width(1024).default_height(768).title("Test").build();
     let drawing_area: DrawingArea = DrawingArea::builder().build();
 
-    // Initialize Shared Data
+    // Initialize shared plot data for testing...these will be from fit file.
     let mut plotvals: Vec<(f32, f32)> = Vec::new();
     plotvals.push((1.0, 3.0));
     plotvals.push((5.0, 6.0));
@@ -24,7 +24,7 @@ fn build_gui(app: &Application){
     drawing_area.set_draw_func(clone!(#[strong] plotvals, move |_drawing_area, cr, width, height| {
         // --- 🎨 Custom Drawing Logic Starts Here ---
  
-        let root = plotters_cairo::CairoBackend::new(&cr, (1024,768)).unwrap().into_drawing_area();
+        let root = plotters_cairo::CairoBackend::new(&cr, (width.try_into().unwrap(), height.try_into().unwrap())).unwrap().into_drawing_area();
         let _ = root.fill(&WHITE);
 
         let root = root.margin(10, 10, 10, 10);
