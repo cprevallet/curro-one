@@ -58,7 +58,7 @@ fn get_msg_record_field_as_vec(data : Vec<FitDataRecord>, field_name :  &str) ->
     return field_vals;
 }
 
-// Retrieve values to plot from fit file.
+// Retrieve raw values to plot from fit file.
 fn get_xy(data : Vec<FitDataRecord>, x_field_name :  &str, y_field_name : &str) ->  Vec<(f32, f32)>{
     let mut xy_pairs: Vec<(f32, f32)> = Vec::new();
     // Parameter can be distance, heart_rate, enhanced_speed, enhanced_altitude.
