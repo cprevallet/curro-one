@@ -110,8 +110,8 @@ fn build_gui(app: &Application){
             // Set the caption of the chart
             .caption("This is our first plot", ("sans-serif", 40).into_font())
             // Set the size of the label region
-            .x_label_area_size(20)
-            .y_label_area_size(40)
+            .x_label_area_size(100)
+            .y_label_area_size(100)
             // Finally attach a coordinate on the drawing area and make a chart context
             // .build_cartesian_2d(plot_range.0, plot_range.1).unwrap();
             .build_cartesian_2d(plot_range.0, plot_range.1).unwrap();
@@ -122,6 +122,8 @@ fn build_gui(app: &Application){
             // We can customize the maximum number of labels allowed for each axis
             .x_labels(15)
             .y_labels(5)
+            .x_desc("Custom X Axis: Independent Variable")
+            .y_desc("Custom Y Axis: Independent Variable")
             // We can also change the format of the label text
             .y_label_formatter(&|x| format!("{:.3}", x))
             .draw();
