@@ -3,7 +3,7 @@ use gtk4::{Application, ApplicationWindow, DrawingArea, Frame, Orientation};
 use plotters::prelude::*;
 //use shumate::prelude::*;
 //use gtk4::glib::clone;
-use fitparser::{FitDataRecord, profile::field_types::MesgNum};
+use fitparser::{profile::field_types::MesgNum, FitDataRecord};
 use shumate::Map;
 use std::fs::File;
 
@@ -280,8 +280,5 @@ fn build_gui(app: &Application) {
     main_box.append(&frame_left);
     main_box.append(&frame_right);
     win.set_child(Some(&main_box));
-    //win.set_child(Some(&da));
-    // win.set_child(Some(&shumate_map));
-    //    win.set_child(Some(&shumate_map));
     win.present();
 }
