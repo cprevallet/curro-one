@@ -239,7 +239,7 @@ fn build_gui(app: &Application){
         ));
         let _ = root.present();
         // --- Custom Drawing Logic Ends Here ---
-        });
+    });
     win.set_child(Some(&drawing_area));
     win.present();
 }
