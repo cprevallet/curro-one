@@ -181,7 +181,7 @@ fn build_gui(app: &Application){
     let mut pd = PlotData {
        plotvals: plotvals,
        caption : "",
-       xlabel : "",
+       xlabel : "Distance",
        ylabel : "",
        plot_range : plot_range,
        y_formatter : Box::new(num_formatter),
