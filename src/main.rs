@@ -1,9 +1,9 @@
 use gtk4::prelude::*;
-use gtk4::{gdk, Application, ApplicationWindow, DrawingArea, Frame, Orientation};
+use gtk4::{Application, ApplicationWindow, DrawingArea, Frame, Orientation, gdk};
 use libshumate::prelude::*;
 use plotters::prelude::*;
 //use gtk4::glib::clone;
-use fitparser::{profile::field_types::MesgNum, FitDataRecord};
+use fitparser::{FitDataRecord, profile::field_types::MesgNum};
 use libshumate::{Coordinate, PathLayer, SimpleMap};
 use std::fs::File;
 
@@ -21,7 +21,7 @@ const FIT_FILE_NAME: &'static str = "tests/broken.fit";
 // position_lat
 // position_long
 const XPARAM: &'static str = "distance";
-const YPARAM: &'static str = "enhanced_speed";
+const YPARAM: &'static str = "enhanced_altitude";
 
 fn main() {
     let app = Application::builder().build();
@@ -152,18 +152,9 @@ fn get_xy(data: Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> V
 }
 
 // Build drawing area.
-fn build_da() -> DrawingArea {
+fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
     let drawing_area: DrawingArea = DrawingArea::builder().build();
-    // Get values from fit file.
-    let mut plotvals: Vec<(f32, f32)> = Vec::new();
-    //println!("Parsing FIT files using Profile version: {:?}", fitparser::profile::VERSION);
-    let mut fp = File::open(FIT_FILE_NAME).expect("file not found");
-    if let Ok(data) = fitparser::from_reader(&mut fp) {
-        plotvals = get_xy(data, XPARAM, YPARAM);
-    }
-    //  Find the plot range (minx..maxx, miny..maxy)
-    let plot_range = get_plot_range(plotvals.clone());
-    // Format the labels on the y-axis.
+    // Formatters for the labels on the y-axis.
     let num_formatter = |x: &f32| format!("{:.3}", x);
     let pace_formatter = |x: &f32| {
         let mins = x.trunc();
@@ -179,6 +170,10 @@ fn build_da() -> DrawingArea {
         plot_range: (std::ops::Range<f32>, std::ops::Range<f32>),
         y_formatter: Box<dyn Fn(&f32) -> String>,
     }
+    // Get values from fit file.
+    let plotvals = get_xy(data.clone().to_vec(), XPARAM, YPARAM);
+    //  Find the plot range (minx..maxx, miny..maxy)
+    let plot_range = get_plot_range(plotvals.clone());
     let mut pd = PlotData {
         plotvals: plotvals,
         caption: "",
@@ -271,19 +266,14 @@ fn add_path_layer_to_map(map: &SimpleMap, path_points: Vec<(f32, f32)>) {
 }
 
 // Build the map.
-fn build_map() -> SimpleMap {
+fn build_map(data: &Vec<FitDataRecord>) -> SimpleMap {
     let map = SimpleMap::new();
     let source = libshumate::MapSourceRegistry::with_defaults()
         .by_id("osm-mapnik")
         .expect("Could not retrieve map source.");
     map.set_map_source(Some(&source));
     // Get values from fit file.
-    let mut run_path: Vec<(f32, f32)> = Vec::new();
-    //println!("Parsing FIT files using Profile version: {:?}", fitparser::profile::VERSION);
-    let mut fp = File::open(FIT_FILE_NAME).expect("file not found");
-    if let Ok(data) = fitparser::from_reader(&mut fp) {
-        run_path = get_xy(data, "position_lat", "position_long");
-    }
+    let run_path = get_xy(data.clone().to_vec(), "position_lat", "position_long");
     // Call the function to add the path layer
     add_path_layer_to_map(&map, run_path);
     let viewport = map.viewport().expect("Couldn't get viewport.");
@@ -301,25 +291,29 @@ fn build_gui(app: &Application) {
         .default_height(768)
         .title("Test")
         .build();
-    let da = build_da();
-    let shumate_map = build_map();
-    // Frame 1: Controls
-    let frame_left = Frame::builder()
-        .label("Frame 1: Controls")
-        .child(&shumate_map)
-        //        .margin_all(5)
-        .build();
-    // Frame 2: Drawing Output
-    let frame_right = Frame::builder()
-        .label("Frame 2: Drawing Area")
-        .child(&da)
-        //        .margin_all(5)
-        .build();
-    // Main horizontal container to hold the two frames side-by-side
-    let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
-    main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
-    main_box.append(&frame_left);
-    main_box.append(&frame_right);
-    win.set_child(Some(&main_box));
-    win.present();
+    // Get values from fit file.
+    let mut fp = File::open(FIT_FILE_NAME).expect("file not found");
+    if let Ok(data) = fitparser::from_reader(&mut fp) {
+        let da = build_da(&data);
+        let shumate_map = build_map(&data);
+        // Frame 1: Controls
+        let frame_left = Frame::builder()
+            .label("Frame 1: Controls")
+            .child(&shumate_map)
+            //        .margin_all(5)
+            .build();
+        // Frame 2: Drawing Output
+        let frame_right = Frame::builder()
+            .label("Frame 2: Drawing Area")
+            .child(&da)
+            //        .margin_all(5)
+            .build();
+        // Main horizontal container to hold the two frames side-by-side
+        let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
+        main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
+        main_box.append(&frame_left);
+        main_box.append(&frame_right);
+        win.set_child(Some(&main_box));
+        win.present();
+    }
 }
