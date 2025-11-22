@@ -258,7 +258,7 @@ fn add_path_layer_to_map(map: &SimpleMap, path_points: Vec<(f32, f32)>) {
     // Define the RGBA color using the builder pattern for gtk4::gdk::RGBA
     let blue = gdk::RGBA::parse("blue").expect("Failed to parse color");
     let viewport = map.viewport().expect("No viewport.");
-    let path_layer = libshumate::PathLayer::new(&viewport);
+    let path_layer = PathLayer::new(&viewport);
     path_layer.set_stroke_color(Some(&blue));
     path_layer.set_stroke_width(3.0); // Thickness in pixels
     for (lat, lon) in path_points {
