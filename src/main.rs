@@ -346,6 +346,7 @@ fn build_gui(app: &Application) {
             }
         },
     };
+    // Read the fit file and create the map and graph drawing area.
     if let Ok(data) = fitparser::from_reader(&mut file) {
         let shumate_map = build_map(&data);
         frame_left.set_child(Some(&shumate_map));
