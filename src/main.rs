@@ -1,6 +1,7 @@
 use gtk4::prelude::*;
 use gtk4::{
-    Application, ApplicationWindow, Button, DrawingArea, FileChooserDialog, Frame, Orientation, gdk,
+    Application, ApplicationWindow, Button, DrawingArea, FileChooserAction, FileChooserNative,
+    Frame, Label, Orientation, ResponseType, gdk,
 };
 use libshumate::prelude::*;
 use plotters::prelude::*;
@@ -333,11 +334,16 @@ fn build_gui(app: &Application) {
     let frame_left = Frame::builder().build();
     let frame_right = Frame::builder().build();
     let btn = Button::with_label("Select a file...");
-    let file_select = FileChooserDialog::builder().build();
+    //    let file_select = FileChooserDialog::builder().build();
+    let label_path = Label::new(Some("No file selected"));
 
     let frame_left_handle = frame_left.clone();
     let frame_right_handle = frame_right.clone();
+    let window_clone = win.clone();
+    let label_clone = label_path.clone();
+
     btn.connect_clicked(move |_| {
+        /*
         // Get values from fit file.
         let file_result = File::open(FIT_FILE_NAME);
         let mut file = match file_result {
@@ -358,7 +364,43 @@ fn build_gui(app: &Application) {
             frame_left_handle.set_child(Some(&shumate_map));
             let da = build_da(&data);
             frame_right_handle.set_child(Some(&da));
-        }
+        } */
+
+        // 1. Create the Native Dialog
+        // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
+        let native = FileChooserNative::new(
+            Some("Open File Native"),
+            Some(&window_clone),
+            FileChooserAction::Open,
+            Some("Open"),   // Custom label for the "OK" button
+            Some("Cancel"), // Custom label for the "Cancel" button
+        );
+
+        // We need another clone of the label for the dialog's internal closure
+        let label_for_dialog = label_clone.clone();
+
+        // 2. Connect to the response signal
+        native.connect_response(move |dialog, response| {
+            if response == ResponseType::Accept {
+                // Extract the file path
+                if let Some(file) = dialog.file() {
+                    if let Some(path) = file.path() {
+                        let path_str = path.to_string_lossy();
+                        label_for_dialog.set_text(&path_str);
+                        println!("Selected: {}", path_str);
+                    }
+                }
+            } else {
+                println!("User cancelled");
+            }
+
+            // unlike FileChooserDialog, 'native' creates a transient reference.
+            // It's good practice to drop references, but GTK handles the cleanup
+            // once it goes out of scope or the window closes.
+        });
+
+        // 3. Show the dialog
+        native.show();
     });
 
     main_box.append(&frame_left);
