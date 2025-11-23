@@ -6,6 +6,7 @@ use plotters::prelude::*;
 use fitparser::{FitDataRecord, profile::field_types::MesgNum};
 use libshumate::{Coordinate, PathLayer, SimpleMap};
 use std::fs::File;
+use std::io::ErrorKind;
 
 // Only God and I knew what this was doing when I wrote it.
 // Know only God knows.
@@ -85,8 +86,28 @@ fn get_plot_range(data: &Vec<(f32, f32)>) -> (std::ops::Range<f32>, std::ops::Ra
     let _sigma_x = standard_deviation(&x);
     let sigma_y = standard_deviation(&y);
     let xrange: std::ops::Range<f32> = min_vec(x.clone())..max_vec(x.clone());
-    let yrange: std::ops::Range<f32> = mean_y - 3.0 * sigma_y..mean_y + 3.0 * sigma_y;
+    let yrange: std::ops::Range<f32> = mean_y - 2.0 * sigma_y..mean_y + 2.0 * sigma_y;
     return (xrange, yrange);
+}
+
+// Return a session values of "field_name".
+fn get_sess_record_field(data: Vec<FitDataRecord>, field_name: &str) -> f64 {
+    for item in &data {
+        match item.kind() {
+            // Individual msgnum::records
+            MesgNum::Session => {
+                // Retrieve the FitDataField struct.
+                for fld in item.fields().iter() {
+                    if fld.name() == field_name {
+                        return fld.value().clone().try_into().unwrap();
+                        //                         println!("{:?}", v64);
+                    }
+                }
+            }
+            _ => (), // matches other patterns
+        }
+    }
+    return f64::NAN;
 }
 
 // Return a vector of values of "field_name".
@@ -279,8 +300,21 @@ fn build_map(data: &Vec<FitDataRecord>) -> SimpleMap {
     add_path_layer_to_map(&map, run_path);
     let viewport = map.viewport().expect("Couldn't get viewport.");
     // You may want to set an initial center and zoom level.
-    viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
-    viewport.set_zoom_level(9.0);
+    let nec_lat = get_sess_record_field(data.clone(), "nec_lat");
+    let nec_long = get_sess_record_field(data.clone(), "nec_long");
+    let swc_lat = get_sess_record_field(data.clone(), "swc_lat");
+    let swc_long = get_sess_record_field(data.clone(), "swc_long");
+    if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
+        let center_lat = (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
+        let center_long =
+            (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
+        // println!("{:?}", center_lat);
+        // println!("{:?}", center_long);
+        viewport.set_location(center_lat, center_long);
+    } else {
+        viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
+    }
+    viewport.set_zoom_level(14.0);
     return map;
 }
 
@@ -293,8 +327,20 @@ fn build_gui(app: &Application) {
         .title("Test")
         .build();
     // Get values from fit file.
-    let mut fp = File::open(FIT_FILE_NAME).expect("file not found");
-    if let Ok(data) = fitparser::from_reader(&mut fp) {
+    let file_result = File::open(FIT_FILE_NAME);
+    let mut file = match file_result {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            // Handle specifically "Not Found"
+            ErrorKind::NotFound => {
+                panic!("File not found.");
+            }
+            _ => {
+                panic!("Hmmm...unknown error. Check file permissions?");
+            }
+        },
+    };
+    if let Ok(data) = fitparser::from_reader(&mut file) {
         let da = build_da(&data);
         let shumate_map = build_map(&data);
         // Frame 1: Controls
