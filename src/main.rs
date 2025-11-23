@@ -326,6 +326,14 @@ fn build_gui(app: &Application) {
         .default_height(768)
         .title("Test")
         .build();
+    // Main horizontal container to hold the two frames side-by-side
+    let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
+    // Frame 1: Controls
+    let frame_left = Frame::builder().build();
+    // Frame 2: Drawing Output
+    let frame_right = Frame::builder().build();
+    main_box.append(&frame_left);
+    main_box.append(&frame_right);
     // Get values from fit file.
     let file_result = File::open(FIT_FILE_NAME);
     let mut file = match file_result {
@@ -341,26 +349,13 @@ fn build_gui(app: &Application) {
         },
     };
     if let Ok(data) = fitparser::from_reader(&mut file) {
-        let da = build_da(&data);
         let shumate_map = build_map(&data);
-        // Frame 1: Controls
-        let frame_left = Frame::builder()
-            .label("Frame 1: Controls")
-            .child(&shumate_map)
-            //        .margin_all(5)
-            .build();
-        // Frame 2: Drawing Output
-        let frame_right = Frame::builder()
-            .label("Frame 2: Drawing Area")
-            .child(&da)
-            //        .margin_all(5)
-            .build();
-        // Main horizontal container to hold the two frames side-by-side
-        let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
-        main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
-        main_box.append(&frame_left);
-        main_box.append(&frame_right);
-        win.set_child(Some(&main_box));
-        win.present();
+        frame_left.set_child(Some(&shumate_map));
+        let da = build_da(&data);
+        frame_right.set_child(Some(&da));
     }
+    main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
+
+    win.set_child(Some(&main_box));
+    win.present();
 }
