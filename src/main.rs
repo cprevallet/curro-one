@@ -328,9 +328,7 @@ fn build_gui(app: &Application) {
         .build();
     // Main horizontal container to hold the two frames side-by-side
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
-    // Frame 1: Controls
     let frame_left = Frame::builder().build();
-    // Frame 2: Drawing Output
     let frame_right = Frame::builder().build();
     main_box.append(&frame_left);
     main_box.append(&frame_right);
@@ -355,7 +353,6 @@ fn build_gui(app: &Application) {
         frame_right.set_child(Some(&da));
     }
     main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
-
     win.set_child(Some(&main_box));
     win.present();
 }
