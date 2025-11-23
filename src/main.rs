@@ -343,29 +343,6 @@ fn build_gui(app: &Application) {
     let label_clone = label_path.clone();
 
     btn.connect_clicked(move |_| {
-        /*
-        // Get values from fit file.
-        let file_result = File::open(FIT_FILE_NAME);
-        let mut file = match file_result {
-            Ok(file) => file,
-            Err(error) => match error.kind() {
-                // Handle specifically "Not Found"
-                ErrorKind::NotFound => {
-                    panic!("File not found.");
-                }
-                _ => {
-                    panic!("Hmmm...unknown error. Check file permissions?");
-                }
-            },
-        };
-        // Read the fit file and create the map and graph drawing area.
-        if let Ok(data) = fitparser::from_reader(&mut file) {
-            let shumate_map = build_map(&data);
-            frame_left_handle.set_child(Some(&shumate_map));
-            let da = build_da(&data);
-            frame_right_handle.set_child(Some(&da));
-        } */
-
         // 1. Create the Native Dialog
         // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
         let native = FileChooserNative::new(
@@ -378,6 +355,8 @@ fn build_gui(app: &Application) {
 
         // We need another clone of the label for the dialog's internal closure
         let label_for_dialog = label_clone.clone();
+        let frame_left_handle2 = frame_left_handle.clone();
+        let frame_right_handle2 = frame_right_handle.clone();
 
         // 2. Connect to the response signal
         native.connect_response(move |dialog, response| {
@@ -388,6 +367,29 @@ fn build_gui(app: &Application) {
                         let path_str = path.to_string_lossy();
                         label_for_dialog.set_text(&path_str);
                         println!("Selected: {}", path_str);
+
+                        // Get values from fit file.
+                        //                        let file_result = File::open(FIT_FILE_NAME);
+                        let file_result = File::open(&*path_str);
+                        let mut file = match file_result {
+                            Ok(file) => file,
+                            Err(error) => match error.kind() {
+                                // Handle specifically "Not Found"
+                                ErrorKind::NotFound => {
+                                    panic!("File not found.");
+                                }
+                                _ => {
+                                    panic!("Hmmm...unknown error. Check file permissions?");
+                                }
+                            },
+                        };
+                        // Read the fit file and create the map and graph drawing area.
+                        if let Ok(data) = fitparser::from_reader(&mut file) {
+                            let shumate_map = build_map(&data);
+                            frame_left_handle2.set_child(Some(&shumate_map));
+                            let da = build_da(&data);
+                            frame_right_handle2.set_child(Some(&da));
+                        }
                     }
                 }
             } else {
