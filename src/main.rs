@@ -218,10 +218,18 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
         let _ = root.fill(&WHITE);
         let areas = root.split_evenly((2, 2));
 
-        for a in areas {
+        let mut plotvals: Vec<(f32, f32)> = Vec::new();
+        let mut caption: &str = "";
+        let mut xlabel: &str = "";
+        let mut ylabel: &str = "";
+        let mut plot_range: (std::ops::Range<f32>, std::ops::Range<f32>) =
+            (0_f32..1_f32, 0_f32..1_f32);
+        let mut y_formatter: Box<dyn Fn(&f32) -> String>;
+
+        for (a, idx) in areas.iter().zip(1..) {
             //let root = root.margin(50, 50, 50, 50);
             // After this point, we should be able to construct a chart context
-            //
+            if idx == 1 {}
             let mut chart = ChartBuilder::on(&a)
                 // Set the caption of the chart
                 .caption(pd.caption, ("sans-serif", 40).into_font())
