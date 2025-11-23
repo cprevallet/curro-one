@@ -218,18 +218,31 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
         let _ = root.fill(&WHITE);
         let areas = root.split_evenly((2, 2));
 
+        let num_formatter = |x: &f32| format!("{:.3}", x);
+        let pace_formatter = |x: &f32| {
+            let mins = x.trunc();
+            let secs = x - mins;
+            format!("{:02.0}:{:02.0}", mins, secs)
+        };
         let mut plotvals: Vec<(f32, f32)> = Vec::new();
         let mut caption: &str = "";
         let mut xlabel: &str = "";
         let mut ylabel: &str = "";
         let mut plot_range: (std::ops::Range<f32>, std::ops::Range<f32>) =
             (0_f32..1_f32, 0_f32..1_f32);
-        let mut y_formatter: Box<dyn Fn(&f32) -> String>;
+        let mut y_formatter: Box<dyn Fn(&f32) -> String> = Box::new(num_formatter);
 
         for (a, idx) in areas.iter().zip(1..) {
             //let root = root.margin(50, 50, 50, 50);
             // After this point, we should be able to construct a chart context
-            if idx == 1 {}
+            if idx == 4 {
+                plotvals = get_xy(&d, "distance", "enhanced_speed");
+                plot_range = get_plot_range(&plotvals.clone());
+                y_formatter = Box::new(pace_formatter);
+                caption = "Pace";
+                ylabel = "Pace(min/mile)";
+                xlabel = "Distance(meters)";
+            }
             let mut chart = ChartBuilder::on(&a)
                 // Set the caption of the chart
                 .caption(caption, ("sans-serif", 40).into_font())
@@ -246,7 +259,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 .y_labels(5)
                 .x_desc(xlabel)
                 .y_desc(ylabel)
-                .y_label_formatter(&pd.y_formatter)
+                .y_label_formatter(&y_formatter)
                 .draw();
             // // And we can draw something in the drawing area
             // We need to clone plotvals each time we make a call to LineSeries and PointSeries
