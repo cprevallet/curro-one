@@ -15,6 +15,8 @@ use std::io::ErrorKind;
 // Only God and I knew what this was doing when I wrote it.
 // Know only God knows.
 
+static FRACT_OF_SCREEN: f32 = 0.85;
+
 // Program entry point.
 fn main() {
     let app = Application::builder().build();
@@ -208,7 +210,6 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
 // Build drawing area.
 fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
     let drawing_area: DrawingArea = DrawingArea::builder().build();
-    drawing_area.set_height_request(600); //need at least this much for legibility
     // Need to clone to use inside the closure.
     let d = data.clone();
     // Use a "closure" (anonymous function?) as the drawing area draw_func.
@@ -376,10 +377,7 @@ fn get_geometry() -> (i32, i32) {
             if let Ok(monitor) = monitor_obj.downcast::<gdk::Monitor>() {
                 // 4. Get geometry (x, y, width, height)
                 let geometry = monitor.geometry();
-
-                let target_width = (geometry.width() as f64 * 0.80) as i32;
-                let target_height = (geometry.height() as f64 * 0.80) as i32;
-                return (target_width, target_height);
+                return (geometry.width(), geometry.height());
             }
         }
     }
@@ -388,16 +386,20 @@ fn get_geometry() -> (i32, i32) {
 // Create the GUI.
 fn build_gui(app: &Application) {
     let (width, height) = get_geometry();
+    let app_width = FRACT_OF_SCREEN * width as f32;
+    let app_height = FRACT_OF_SCREEN * height as f32;
     let win = ApplicationWindow::builder()
         .application(app)
-        .default_width(width)
-        .default_height(height)
+        .default_width(app_width.trunc() as i32)
+        .default_height(app_height.trunc() as i32)
         .title("Test")
         .build();
 
     let outer_box = gtk4::Box::new(Orientation::Vertical, 10);
     // Main horizontal container to hold the two frames side-by-side
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
+    main_box.set_vexpand(true);
+    main_box.set_hexpand(true);
     let frame_left = Frame::builder().build();
     let frame_right = Frame::builder().build();
     let btn = Button::with_label("Select a file...");
