@@ -263,7 +263,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Elevation";
                 ylabel = "Elevation(feet)";
-                xlabel = "Distance(miles))";
+                xlabel = "Distance(miles)";
                 color = &RED;
             }
             if idx == 2 {
@@ -272,7 +272,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Heart rate";
                 ylabel = "Heart rate(bpm)";
-                xlabel = "Distance(miles))";
+                xlabel = "Distance(miles)";
                 color = &BLUE;
             }
             if idx == 3 {
@@ -281,7 +281,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Cadence";
                 ylabel = "Cadence";
-                xlabel = "Distance(miles))";
+                xlabel = "Distance(miles)";
                 color = &CYAN;
             }
             if idx == 4 {
@@ -290,7 +290,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(pace_formatter);
                 caption = "Pace";
                 ylabel = "Pace(min/mile)";
-                xlabel = "Distance(miles))";
+                xlabel = "Distance(miles)";
                 color = &GREEN;
             }
             if idx == 5 {
@@ -299,7 +299,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Temperature";
                 ylabel = "Temperature (°F)";
-                xlabel = "Distance(miles))";
+                xlabel = "Distance(miles)";
                 color = &BROWN;
             }
             if idx == 6 {
