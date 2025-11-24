@@ -134,7 +134,7 @@ fn get_msg_record_field_as_vec(data: Vec<FitDataRecord>, field_name: &str) -> Ve
 }
 
 // Convert speed (m/s) to pace(min/mile)
-fn cvt_to_pace(speed: f32) -> f32 {
+fn cvt_pace(speed: f32) -> f32 {
     if speed < 1.00 {
         return 26.8224; //avoid divide by zero
     } else {
@@ -142,8 +142,20 @@ fn cvt_to_pace(speed: f32) -> f32 {
     }
 }
 
-// Retrieve raw values to plot from fit file.
+// Convert distance meters to miles.
+fn cvt_distance(distance: f32) -> f32 {
+    return distance * 0.00062137119;
+}
+
+// Convert altitude meters to feet.
+fn cvt_altitude(altitude: f32) -> f32 {
+    return altitude * 3.2808399;
+}
+
+// Retrieve converted values to plot from fit file.
 fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> Vec<(f32, f32)> {
+    let mut x_user: Vec<f32> = Vec::new();
+    let mut y_user: Vec<f32> = Vec::new();
     let mut xy_pairs: Vec<(f32, f32)> = Vec::new();
     // Parameter can be distance, heart_rate, enhanced_speed, enhanced_altitude.
     let x: Vec<f64> = get_msg_record_field_as_vec(data.clone(), x_field_name);
@@ -151,16 +163,45 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
     //  Convert values to 32 bit and create a tuple.
     if (x.len() == y.len()) && (x.len() != 0) && (y.len() != 0) {
         for index in 0..x.len() - 1 {
-            //TODO This is ugly!  Need a better method to handle conversions.
-            if y_field_name != "enhanced_speed" {
-                xy_pairs.push((x[index] as f32, y[index] as f32));
-            } else {
-                // special case
-                let pace = cvt_to_pace(y[index] as f32);
-                xy_pairs.push((x[index] as f32, pace as f32));
+            match x_field_name {
+                "distance" => {
+                    x_user.push(cvt_distance(x[index] as f32));
+                }
+                "enhanced_speed" => {
+                    x_user.push(cvt_pace(x[index] as f32));
+                }
+                "altitude" => {
+                    x_user.push(cvt_altitude(x[index] as f32));
+                }
+                _ => {
+                    x_user.push(x[index] as f32);
+                }
             }
         }
-    };
+    }
+    if (x.len() == y.len()) && (x.len() != 0) && (y.len() != 0) {
+        for index in 0..y.len() - 1 {
+            match y_field_name {
+                "distance" => {
+                    y_user.push(cvt_distance(y[index] as f32));
+                }
+                "enhanced_speed" => {
+                    y_user.push(cvt_pace(y[index] as f32));
+                }
+                "altitude" => {
+                    y_user.push(cvt_altitude(y[index] as f32));
+                }
+                _ => {
+                    y_user.push(y[index] as f32);
+                }
+            }
+        }
+    }
+    if (x_user.len() == y_user.len()) && (x_user.len() != 0) && (y_user.len() != 0) {
+        for index in 0..x.len() - 1 {
+            xy_pairs.push((x_user[index], y_user[index]));
+        }
+    }
     return xy_pairs;
 }
 
@@ -207,8 +248,8 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(num_formatter);
                 caption = "Elevation";
-                ylabel = "Elevation(meters)";
-                xlabel = "Distance(meters)";
+                ylabel = "Elevation(feet)";
+                xlabel = "Distance(miles))";
                 color = &RED;
             }
             if idx == 2 {
@@ -217,7 +258,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Heart rate";
                 ylabel = "Heart rate(bpm)";
-                xlabel = "Distance(meters)";
+                xlabel = "Distance(miles))";
                 color = &BLUE;
             }
             if idx == 3 {
@@ -226,7 +267,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(num_formatter);
                 caption = "Cadence";
                 ylabel = "Cadence";
-                xlabel = "Distance(meters)";
+                xlabel = "Distance(miles))";
                 color = &YELLOW;
             }
             if idx == 4 {
@@ -235,7 +276,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 y_formatter = Box::new(pace_formatter);
                 caption = "Pace";
                 ylabel = "Pace(min/mile)";
-                xlabel = "Distance(meters)";
+                xlabel = "Distance(miles))";
                 color = &GREEN;
             }
             let mut chart = ChartBuilder::on(&a)
@@ -339,15 +380,6 @@ fn get_geometry() -> (i32, i32) {
                 let target_width = (geometry.width() as f64 * 0.80) as i32;
                 let target_height = (geometry.height() as f64 * 0.80) as i32;
                 return (target_width, target_height);
-
-                // 5. Apply the size request
-                // win.set_width_request(target_width);
-                // win.set_height_request(target_height);
-                //win.set_default_size(target_width, target_height);
-                //win.set_default_size(target_width, target_height);
-
-                // println!("Screen: {}x{}", geometry.width(), geometry.height());
-                // println!("Win set to: {}x{}", target_width, target_height);
             }
         }
     }
@@ -400,10 +432,7 @@ fn build_gui(app: &Application) {
                     if let Some(path) = file.path() {
                         let path_str = path.to_string_lossy();
                         label_for_dialog.set_text(&path_str);
-                        println!("Selected: {}", path_str);
-
                         // Get values from fit file.
-                        //                        let file_result = File::open(FIT_FILE_NAME);
                         let file_result = File::open(&*path_str);
                         let mut file = match file_result {
                             Ok(file) => file,
