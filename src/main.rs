@@ -9,6 +9,8 @@ use plotters::prelude::*;
 //use gtk4::glib::clone;
 use fitparser::{FitDataRecord, profile::field_types::MesgNum};
 use libshumate::{Coordinate, PathLayer, SimpleMap};
+use plotters::style::full_palette::BROWN;
+use plotters::style::full_palette::CYAN;
 use std::fs::File;
 use std::io::ErrorKind;
 
@@ -154,6 +156,11 @@ fn cvt_altitude(altitude: f32) -> f32 {
     return altitude * 3.2808399;
 }
 
+// Convert temperature deg C  to deg F.
+fn cvt_temperature(temperature: f32) -> f32 {
+    return temperature * 1.8 + 32.0;
+}
+
 // Retrieve converted values to plot from fit file.
 fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> Vec<(f32, f32)> {
     let mut x_user: Vec<f32> = Vec::new();
@@ -175,6 +182,9 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
                 "altitude" => {
                     x_user.push(cvt_altitude(x[index] as f32));
                 }
+                "temperature" => {
+                    x_user.push(cvt_temperature(x[index] as f32));
+                }
                 _ => {
                     x_user.push(x[index] as f32);
                 }
@@ -192,6 +202,9 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
                 }
                 "altitude" => {
                     y_user.push(cvt_altitude(y[index] as f32));
+                }
+                "temperature" => {
+                    y_user.push(cvt_temperature(y[index] as f32));
                 }
                 _ => {
                     y_user.push(y[index] as f32);
@@ -224,7 +237,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
         .unwrap()
         .into_drawing_area();
         let _ = root.fill(&WHITE);
-        let areas = root.split_evenly((2, 2));
+        let areas = root.split_evenly((2, 3));
         // Declare and initialize.
         let num_formatter = |x: &f32| format!("{:.3}", x);
         let pace_formatter = |x: &f32| {
@@ -269,7 +282,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 caption = "Cadence";
                 ylabel = "Cadence";
                 xlabel = "Distance(miles))";
-                color = &YELLOW;
+                color = &CYAN;
             }
             if idx == 4 {
                 plotvals = get_xy(&d, "distance", "enhanced_speed");
@@ -279,6 +292,18 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
                 ylabel = "Pace(min/mile)";
                 xlabel = "Distance(miles))";
                 color = &GREEN;
+            }
+            if idx == 5 {
+                plotvals = get_xy(&d, "distance", "temperature");
+                plot_range = get_plot_range(&plotvals.clone());
+                y_formatter = Box::new(num_formatter);
+                caption = "Temperature";
+                ylabel = "Temperature (°F)";
+                xlabel = "Distance(miles))";
+                color = &BROWN;
+            }
+            if idx == 6 {
+                break;
             }
             let mut chart = ChartBuilder::on(&a)
                 // Set the caption of the chart
