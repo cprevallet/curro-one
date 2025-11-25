@@ -503,7 +503,7 @@ fn build_summary(data: &Vec<FitDataRecord>, text_buffer: &TextBuffer) {
                             let val: f64 = fld.value().clone().try_into().unwrap();
                             let val_cvt = cvt_elapsed_time(val as f32);
                             let value_str = format!(
-                                "{:<40}: {:02}:{:02}:{:02}\n",
+                                "{:<40}: {:01}h:{:02}m:{:02}s\n",
                                 fld.name(),
                                 val_cvt.0,
                                 val_cvt.1,
