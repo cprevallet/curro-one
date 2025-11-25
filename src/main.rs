@@ -259,6 +259,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
             // After this point, we should be able to construct a chart context
             if idx == 1 {
                 plotvals = get_xy(&d, "distance", "enhanced_altitude");
+                if plotvals.len() == 0 {
+                    continue;
+                }
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(num_formatter);
                 caption = "Elevation";
@@ -268,6 +271,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
             }
             if idx == 2 {
                 plotvals = get_xy(&d, "distance", "heart_rate");
+                if plotvals.len() == 0 {
+                    continue;
+                }
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(num_formatter);
                 caption = "Heart rate";
@@ -277,6 +283,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
             }
             if idx == 3 {
                 plotvals = get_xy(&d, "distance", "cadence");
+                if plotvals.len() == 0 {
+                    continue;
+                }
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(num_formatter);
                 caption = "Cadence";
@@ -286,6 +295,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
             }
             if idx == 4 {
                 plotvals = get_xy(&d, "distance", "enhanced_speed");
+                if plotvals.len() == 0 {
+                    continue;
+                }
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(pace_formatter);
                 caption = "Pace";
@@ -295,6 +307,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> DrawingArea {
             }
             if idx == 5 {
                 plotvals = get_xy(&d, "distance", "temperature");
+                if plotvals.len() == 0 {
+                    continue;
+                }
                 plot_range = get_plot_range(&plotvals.clone());
                 y_formatter = Box::new(num_formatter);
                 caption = "Temperature";
