@@ -2,7 +2,7 @@ use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Application, ApplicationWindow, Button, DrawingArea, FileChooserAction, FileChooserNative,
-    Frame, Label, Orientation, ResponseType, gdk,
+    Frame, Label, Orientation, ResponseType, ScrolledWindow, TextBuffer, TextIter, TextView, gdk,
 };
 use libshumate::prelude::*;
 use plotters::prelude::*;
@@ -402,6 +402,46 @@ fn build_map(data: &Vec<FitDataRecord>) -> SimpleMap {
     return map;
 }
 
+// Build the map.
+fn build_summary(data: &Vec<FitDataRecord>, text_buffer: &TextBuffer) {
+    text_buffer.set_text("File loaded.");
+    // Clear out anything in the buffer.
+    let mut start = text_buffer.start_iter();
+    let mut end = text_buffer.end_iter();
+    text_buffer.delete(&mut start, &mut end);
+    for item in data {
+        match item.kind() {
+            MesgNum::Session => {
+                // print all the data records in FIT file
+                //println!("{:#?}", item.fields());
+
+                text_buffer.insert(&mut end, "################ Session ###############\n");
+                // Retrieve the FitDataField struct.
+                for fld in item.fields().iter() {
+                    match fld.number() {
+                        3_u8..=4_u8 | 29_u8..=39_u8 => {
+                            let semi: i64 = fld.value().try_into().expect("conversion failed"); //semicircles
+                            let degrees = semi_to_degrees(semi as f32);
+                            let value_str =
+                                format!("{:3} {degrees}°, Units = degrees\n", fld.name(),);
+                            text_buffer.insert(&mut end, &value_str);
+                        }
+
+                        0_u8..=2_u8 | 5_u8..=28_u8 | 40_u8..=253_u8 => {
+                            let value_str =
+                                format!("{} {:#}, {}\n", fld.name(), fld.value(), fld.units());
+                            text_buffer.insert(&mut end, &value_str);
+                        }
+
+                        _ => print!("{}", ""), // matches other patterns
+                    }
+                }
+            }
+            _ => print!("{}", ""), // matches other patterns
+        }
+    }
+}
+
 // Find out how many pixels we have to work with.
 fn get_geometry() -> (i32, i32) {
     // 1. Get the default display (connection to the window server)
@@ -438,6 +478,10 @@ fn build_gui(app: &Application) {
     let outer_box = gtk4::Box::new(Orientation::Vertical, 10);
     // Main horizontal container to hold the two frames side-by-side
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
+    let inner_box = gtk4::Box::new(Orientation::Vertical, 10);
+    let text_view = TextView::builder().build();
+    let text_buffer = text_view.buffer();
+
     main_box.set_vexpand(true);
     main_box.set_hexpand(true);
     let frame_left = Frame::builder().build();
@@ -449,6 +493,7 @@ fn build_gui(app: &Application) {
     let frame_right_handle = frame_right.clone();
     let window_clone = win.clone();
     let label_clone = label_path.clone();
+    let text_buffer_handle = text_buffer.clone();
 
     btn.connect_clicked(move |_| {
         // 1. Create the Native Dialog
@@ -465,6 +510,7 @@ fn build_gui(app: &Application) {
         let label_for_dialog = label_clone.clone();
         let frame_left_handle2 = frame_left_handle.clone();
         let frame_right_handle2 = frame_right_handle.clone();
+        let text_buffer_handle2 = text_buffer_handle.clone();
 
         // 2. Connect to the response signal
         native.connect_response(move |dialog, response| {
@@ -494,6 +540,7 @@ fn build_gui(app: &Application) {
                             frame_left_handle2.set_child(Some(&shumate_map));
                             let da = build_da(&data);
                             frame_right_handle2.set_child(Some(&da));
+                            build_summary(&data, &text_buffer_handle2);
                         }
                     }
                 }
@@ -509,9 +556,22 @@ fn build_gui(app: &Application) {
         native.show();
     });
 
-    main_box.append(&frame_left);
+    // Inner box contains only the map and text summary
+    inner_box.append(&frame_left);
+    inner_box.set_homogeneous(true);
+    // TextViews do not scroll by default; they must be wrapped in a ScrolledWindow.
+    let scrolled_window = ScrolledWindow::builder()
+        //        .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
+        .min_content_width(300)
+        .min_content_height(200)
+        .child(&text_view)
+        .build();
+    inner_box.append(&scrolled_window);
+    // Main box contains all of the above plus the graphs.
+    main_box.append(&inner_box);
     main_box.append(&frame_right);
     main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
+    // Outer box contains the above and the file load button.
     outer_box.append(&btn);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
