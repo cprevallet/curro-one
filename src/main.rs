@@ -4,8 +4,8 @@ use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Adjustment, Application, ApplicationWindow, Button, DrawingArea, FileChooserAction,
-    FileChooserNative, Frame, Orientation, ResponseType, ScrolledWindow, SpinButton, TextBuffer,
-    TextView, gdk,
+    FileChooserNative, Frame, Orientation, ResponseType, Scale, ScrolledWindow, SpinButton,
+    TextBuffer, TextView, gdk,
 };
 use libshumate::prelude::*;
 use libshumate::{Coordinate, PathLayer, SimpleMap};
@@ -756,21 +756,17 @@ fn build_gui(app: &Application) {
     let outer_box = gtk4::Box::new(Orientation::Vertical, 10);
     // Main horizontal container to hold the two frames side-by-side
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
-    let inner_box = gtk4::Box::new(Orientation::Vertical, 10);
+    let left_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
+    let right_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
 
-    // Create a spin button for the y-axis zoom.
+    //Create a spin button for the y-axis zoom.
     let y_zoom_spin_button = SpinButton::builder()
         // Only set properties not managed by the Adjustment:
         .digits(2) // Display 2 decimal places
         .wrap(false)
+        .orientation(Orientation::Vertical)
         .build();
-
-    // Create a spin button for the y-axis zoom.
-    let x_zoom_spin_button = SpinButton::builder()
-        // Only set properties not managed by the Adjustment:
-        .digits(2) // Display 2 decimal places
-        .wrap(false)
-        .build();
+    // Create a spin button for the x-axis zoom.
 
     let text_view = TextView::builder().build();
     text_view.set_monospace(true);
@@ -786,7 +782,6 @@ fn build_gui(app: &Application) {
     let window_clone = win.clone();
     let text_buffer_handle = text_buffer.clone();
     let y_axis_spin_button_handle = y_zoom_spin_button.clone();
-    let x_axis_spin_button_handle = x_zoom_spin_button.clone();
 
     btn.connect_clicked(move |_| {
         // 1. Create the Native Dialog
@@ -804,7 +799,6 @@ fn build_gui(app: &Application) {
         let frame_right_handle2 = frame_right_handle.clone();
         let text_buffer_handle2 = text_buffer_handle.clone();
         let y_axis_spin_button_handle2 = y_axis_spin_button_handle.clone();
-        let x_axis_spin_button_handle2 = x_axis_spin_button_handle.clone();
 
         // 2. Connect to the response signal
         native.connect_response(move |dialog, response| {
@@ -830,22 +824,18 @@ fn build_gui(app: &Application) {
                         // Read the fit file and create the map and graph drawing area.
                         if let Ok(data) = fitparser::from_reader(&mut file) {
                             let shumate_map = build_map(&data);
-                            let (da, xzm, yzm) = build_da(&data);
+                            let (da, _, yzm) = build_da(&data);
+                            let (_width, height) = get_geometry();
+                            let da_height = 0.7 * height as f32;
+                            da.set_content_height(da_height as i32);
                             let y_da_handle = da.clone();
-                            let x_da_handle = da.clone();
                             frame_left_handle2.set_child(Some(&shumate_map));
                             frame_right_handle2.set_child(Some(&da));
                             y_axis_spin_button_handle2.set_adjustment(&yzm);
-                            x_axis_spin_button_handle2.set_adjustment(&xzm);
                             y_axis_spin_button_handle2
                                 .adjustment()
                                 .connect_value_changed(move |_| {
                                     y_da_handle.queue_draw();
-                                });
-                            x_axis_spin_button_handle2
-                                .adjustment()
-                                .connect_value_changed(move |_| {
-                                    x_da_handle.queue_draw();
                                 });
                             build_summary(&data, &text_buffer_handle2);
                         }
@@ -864,8 +854,11 @@ fn build_gui(app: &Application) {
     });
 
     // Inner box contains only the map and text summary
-    inner_box.append(&frame_left);
-    inner_box.set_homogeneous(true);
+    right_frame_box.append(&frame_right);
+    right_frame_box.append(&y_zoom_spin_button);
+    left_frame_box.append(&frame_left);
+    left_frame_box.set_homogeneous(true);
+    // right_frame_box.set_homogeneous(true);
     // TextViews do not scroll by default; they must be wrapped in a ScrolledWindow.
     let scrolled_window = ScrolledWindow::builder()
         //        .hscrollbar_policy:(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -873,15 +866,14 @@ fn build_gui(app: &Application) {
         .min_content_height(200)
         .child(&text_view)
         .build();
-    inner_box.append(&scrolled_window);
+    left_frame_box.append(&scrolled_window);
     // Main box contains all of the above plus the graphs.
-    main_box.append(&inner_box);
-    main_box.append(&frame_right);
+    main_box.append(&left_frame_box);
+    main_box.append(&right_frame_box);
     main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
     // Outer box contains the above and the file load button.
     outer_box.append(&btn);
     outer_box.append(&y_zoom_spin_button);
-    outer_box.append(&x_zoom_spin_button);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
     win.present();
