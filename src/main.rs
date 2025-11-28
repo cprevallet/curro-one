@@ -770,6 +770,8 @@ fn build_gui(app: &Application) {
 
     let text_view = TextView::builder().build();
     text_view.set_monospace(true);
+    text_view.set_top_margin(10);
+    text_view.set_left_margin(10);
     let text_buffer = text_view.buffer();
     main_box.set_vexpand(true);
     main_box.set_hexpand(true);
