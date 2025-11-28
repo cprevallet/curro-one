@@ -747,42 +747,19 @@ fn build_gui(app: &Application) {
     let (width, height) = get_geometry();
     let app_width = FRACT_OF_SCREEN * width as f32;
     let app_height = FRACT_OF_SCREEN * height as f32;
-
-    // Generate the application GUI widgets.
     let win = ApplicationWindow::builder()
         .application(app)
         .default_width(app_width.trunc() as i32)
         .default_height(app_height.trunc() as i32)
         .title("Test")
         .build();
+
     let outer_box = gtk4::Box::new(Orientation::Vertical, 10);
     // Main horizontal container to hold the two frames side-by-side
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
-<<<<<<< HEAD
-    let inner_box = gtk4::Box::new(Orientation::Vertical, 10);
-    let text_view = TextView::builder().build();
-    text_view.set_monospace(true);
-    text_view.set_top_margin(10);
-    text_view.set_left_margin(10);
-    let text_buffer = text_view.buffer();
-
-    main_box.set_vexpand(true);
-    main_box.set_hexpand(true);
-=======
->>>>>>> 9302741 (Group (and comment) the GUI logic in a more logical fashion.  No changes.)
-    let frame_left = Frame::builder().build();
-    let frame_right = Frame::builder().build();
     let left_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
     let right_frame_box = gtk4::Box::new(Orientation::Horizontal, 10);
-    let text_view = TextView::builder().build();
-    // TextViews do not scroll by default; they must be wrapped in a ScrolledWindow.
-    let scrolled_window = ScrolledWindow::builder()
-        //        .hscrollbar_policy:(gtk::PolicyType::Never) // Disable horizontal scrolling
-        .min_content_width(300)
-        .min_content_height(200)
-        .child(&text_view)
-        .build();
-    let btn = Button::with_label("Select a file...");
+
     //Create a spin button for the y-axis zoom.
     let y_zoom_spin_button = SpinButton::builder()
         // Only set properties not managed by the Adjustment:
@@ -793,16 +770,13 @@ fn build_gui(app: &Application) {
 
     let text_view = TextView::builder().build();
     text_view.set_monospace(true);
-    text_view.set_top_margin(10);
-    text_view.set_left_margin(10);
     let text_buffer = text_view.buffer();
-
-    // Set some widget properties.
     main_box.set_vexpand(true);
     main_box.set_hexpand(true);
-    text_view.set_monospace(true);
+    let frame_left = Frame::builder().build();
+    let frame_right = Frame::builder().build();
+    let btn = Button::with_label("Select a file...");
 
-    // Set up call-backs.
     btn.connect_clicked(clone!(
         #[strong]
         win,
@@ -815,7 +789,7 @@ fn build_gui(app: &Application) {
         #[strong]
         y_zoom_spin_button,
         move |_| {
-            // Create the native file selection dialog.
+            // 1. Create the Native Dialog
             // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
             let native = FileChooserNative::new(
                 Some("Open File Native"),
@@ -824,7 +798,8 @@ fn build_gui(app: &Application) {
                 Some("Open"),   // Custom label for the "OK" button
                 Some("Cancel"), // Custom label for the "Cancel" button
             );
-            // Handle the user response.
+
+            // 2. Connect to the response signal
             native.connect_response(clone!(
                 #[strong]
                 frame_left,
@@ -863,16 +838,20 @@ fn build_gui(app: &Application) {
                                     let da_width = 0.45 * width as f32;
                                     da.set_content_height(da_height as i32);
                                     da.set_content_width(da_width as i32);
-                                    let y_da_handle = da.clone();
                                     frame_left.set_child(Some(&shumate_map));
                                     frame_right.set_child(Some(&da));
                                     y_zoom_spin_button.set_adjustment(&yzm);
                                     y_zoom_spin_button.set_width_request(30);
-                                    y_zoom_spin_button.adjustment().connect_value_changed(
-                                        move |_| {
-                                            y_da_handle.queue_draw();
-                                        },
-                                    );
+                                    // Redraw the drawing area when the zoom changes.
+                                    y_zoom_spin_button
+                                        .adjustment()
+                                        .connect_value_changed(clone!(
+                                            #[strong]
+                                            da,
+                                            move |_| {
+                                                da.queue_draw();
+                                            },
+                                        ));
                                     build_summary(&data, &text_buffer);
                                 }
                             }
@@ -885,17 +864,24 @@ fn build_gui(app: &Application) {
                     // once it goes out of scope or the window closes.
                 }
             ));
-            // Show the dialog
+
+            // 3. Show the dialog
             native.show();
         }
     )); //button-connect-clicked
 
-    // Layout the GUI widgets.
-    // Inner box contains only the map and text summary.
+    // Inner box contains only the map and text summary
     right_frame_box.append(&frame_right);
     right_frame_box.append(&y_zoom_spin_button);
     left_frame_box.append(&frame_left);
     left_frame_box.set_homogeneous(true);
+    // TextViews do not scroll by default; they must be wrapped in a ScrolledWindow.
+    let scrolled_window = ScrolledWindow::builder()
+        //        .hscrollbar_policy:(gtk::PolicyType::Never) // Disable horizontal scrolling
+        .min_content_width(300)
+        .min_content_height(200)
+        .child(&text_view)
+        .build();
     left_frame_box.append(&scrolled_window);
     // Main box contains all of the above plus the graphs.
     main_box.append(&left_frame_box);
@@ -906,7 +892,5 @@ fn build_gui(app: &Application) {
     outer_box.append(&y_zoom_spin_button);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
-
-    // Show the window.
     win.present();
 } // build_gui
