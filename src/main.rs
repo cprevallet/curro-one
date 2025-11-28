@@ -1,7 +1,6 @@
 use fitparser::{FitDataRecord, Value, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
 use gtk4::gdk::Display;
-use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
     Adjustment, Application, ApplicationWindow, Button, DrawingArea, FileChooserAction,
@@ -13,10 +12,8 @@ use libshumate::{Coordinate, PathLayer, SimpleMap};
 use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
-use std::cell::RefCell;
 use std::fs::File;
 use std::io::ErrorKind;
-use std::rc::Rc;
 
 // Only God and I knew what this was doing when I wrote it.
 // Know only God knows.
@@ -102,7 +99,7 @@ fn set_plot_range(
     let _sigma_x = standard_deviation(&x);
     let sigma_y = standard_deviation(&y);
     // Disallow zero, negative values of zoom.
-    let xrange: std::ops::Range<f32> = min_vec(x.clone())..zoom_x * max_vec(x.clone());
+    let xrange: std::ops::Range<f32> = min_vec(x.clone())..1.0 / zoom_x * max_vec(x.clone());
     let yrange: std::ops::Range<f32> =
         mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
     mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
@@ -373,7 +370,6 @@ fn draw_graphs(
 ) {
     let zoom_x: f32 = xzm.value() as f32;
     let zoom_y: f32 = yzm.value() as f32;
-    println!("drawing");
     //        println!("{:?}", d);
     // --- 🎨 Custom Drawing Logic Starts Here ---
     let root = plotters_cairo::CairoBackend::new(&cr, (width as u32, height as u32))
@@ -395,7 +391,6 @@ fn draw_graphs(
     let mut plot_range: (std::ops::Range<f32>, std::ops::Range<f32>) = (0_f32..1_f32, 0_f32..1_f32);
     let mut y_formatter: Box<dyn Fn(&f32) -> String> = Box::new(num_formatter);
     let mut color = &RED;
-    println!("xzoom={:?} yzoom={:?}", zoom_x, zoom_y);
     for (a, idx) in areas.iter().zip(1..) {
         //let root = root.margin(50, 50, 50, 50);
         // After this point, we should be able to construct a chart context
@@ -496,9 +491,9 @@ fn build_da(data: &Vec<FitDataRecord>) -> (DrawingArea, Adjustment, Adjustment) 
 
     let yzm = Adjustment::builder()
         // The minimum value
-        .lower(0.5)
+        .lower(0.2)
         // The maximum value
-        .upper(2.0)
+        .upper(4.0)
         // Small step increment (for arrow keys/buttons)
         .step_increment(0.1)
         // Large step increment (for Page Up/Page Down keys)
@@ -765,11 +760,16 @@ fn build_gui(app: &Application) {
 
     // Create a spin button for the y-axis zoom.
     let y_zoom_spin_button = SpinButton::builder()
-        // Assign the Adjustment object to the SpinButton
-        // .adjustment(&adjustment)
         // Only set properties not managed by the Adjustment:
         .digits(2) // Display 2 decimal places
-        .wrap(true)
+        .wrap(false)
+        .build();
+
+    // Create a spin button for the y-axis zoom.
+    let x_zoom_spin_button = SpinButton::builder()
+        // Only set properties not managed by the Adjustment:
+        .digits(2) // Display 2 decimal places
+        .wrap(false)
         .build();
 
     let text_view = TextView::builder().build();
@@ -785,7 +785,8 @@ fn build_gui(app: &Application) {
     let frame_right_handle = frame_right.clone();
     let window_clone = win.clone();
     let text_buffer_handle = text_buffer.clone();
-    let sb_handle = y_zoom_spin_button.clone();
+    let y_axis_spin_button_handle = y_zoom_spin_button.clone();
+    let x_axis_spin_button_handle = x_zoom_spin_button.clone();
 
     btn.connect_clicked(move |_| {
         // 1. Create the Native Dialog
@@ -802,7 +803,8 @@ fn build_gui(app: &Application) {
         let frame_left_handle2 = frame_left_handle.clone();
         let frame_right_handle2 = frame_right_handle.clone();
         let text_buffer_handle2 = text_buffer_handle.clone();
-        let sb_handle2 = sb_handle.clone();
+        let y_axis_spin_button_handle2 = y_axis_spin_button_handle.clone();
+        let x_axis_spin_button_handle2 = x_axis_spin_button_handle.clone();
 
         // 2. Connect to the response signal
         native.connect_response(move |dialog, response| {
@@ -828,19 +830,23 @@ fn build_gui(app: &Application) {
                         // Read the fit file and create the map and graph drawing area.
                         if let Ok(data) = fitparser::from_reader(&mut file) {
                             let shumate_map = build_map(&data);
-                            let y_zoom = sb_handle2.adjustment().value();
-                            let (da, _, yzm) = build_da(&data);
-                            let da_handle = da.clone();
-                            let y_zoom_clone = y_zoom.clone();
-                            let data_clone = data.clone();
+                            let (da, xzm, yzm) = build_da(&data);
+                            let y_da_handle = da.clone();
+                            let x_da_handle = da.clone();
                             frame_left_handle2.set_child(Some(&shumate_map));
                             frame_right_handle2.set_child(Some(&da));
-                            sb_handle2.set_adjustment(&yzm);
-                            sb_handle2.adjustment().connect_value_changed(move |_| {
-                                // println!("Adjustment changed. {:?}", adj.value());
-                                // _ = build_da(&data_clone, 1.0, &adj.value());
-                                da_handle.queue_draw();
-                            });
+                            y_axis_spin_button_handle2.set_adjustment(&yzm);
+                            x_axis_spin_button_handle2.set_adjustment(&xzm);
+                            y_axis_spin_button_handle2
+                                .adjustment()
+                                .connect_value_changed(move |_| {
+                                    y_da_handle.queue_draw();
+                                });
+                            x_axis_spin_button_handle2
+                                .adjustment()
+                                .connect_value_changed(move |_| {
+                                    x_da_handle.queue_draw();
+                                });
                             build_summary(&data, &text_buffer_handle2);
                         }
                     }
@@ -875,6 +881,7 @@ fn build_gui(app: &Application) {
     // Outer box contains the above and the file load button.
     outer_box.append(&btn);
     outer_box.append(&y_zoom_spin_button);
+    outer_box.append(&x_zoom_spin_button);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
     win.present();
