@@ -5,7 +5,7 @@ use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
     Adjustment, Application, ApplicationWindow, Button, DrawingArea, FileChooserAction,
-    FileChooserNative, Frame, Orientation, ResponseType, ScrolledWindow, SpinButton, TextBuffer,
+    FileChooserNative, Frame, Orientation, ResponseType, Scale, ScrolledWindow, TextBuffer,
     TextView, gdk,
 };
 use libshumate::prelude::*;
@@ -759,15 +759,6 @@ fn build_gui(app: &Application) {
     let main_box = gtk4::Box::new(Orientation::Horizontal, 10);
     let left_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
     let right_frame_box = gtk4::Box::new(Orientation::Horizontal, 10);
-
-    //Create a spin button for the y-axis zoom.
-    let y_zoom_spin_button = SpinButton::builder()
-        // Only set properties not managed by the Adjustment:
-        .digits(2) // Display 2 decimal places
-        .wrap(false)
-        .orientation(Orientation::Vertical)
-        .build();
-
     let text_view = TextView::builder().build();
     text_view.set_monospace(true);
     let text_buffer = text_view.buffer();
@@ -776,6 +767,9 @@ fn build_gui(app: &Application) {
     let frame_left = Frame::builder().build();
     let frame_right = Frame::builder().build();
     let btn = Button::with_label("Select a file...");
+    let y_zoom_scale = Scale::with_range(Orientation::Vertical, 0.5, 4.0, 0.1);
+    y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
+    //    scale.set_digits(1);
 
     btn.connect_clicked(clone!(
         #[strong]
@@ -787,7 +781,7 @@ fn build_gui(app: &Application) {
         #[strong]
         text_buffer,
         #[strong]
-        y_zoom_spin_button,
+        y_zoom_scale,
         move |_| {
             // 1. Create the Native Dialog
             // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
@@ -808,7 +802,7 @@ fn build_gui(app: &Application) {
                 #[strong]
                 text_buffer,
                 #[strong]
-                y_zoom_spin_button,
+                y_zoom_scale,
                 move |dialog, response| {
                     if response == ResponseType::Accept {
                         // Extract the file path
@@ -840,18 +834,16 @@ fn build_gui(app: &Application) {
                                     da.set_content_width(da_width as i32);
                                     frame_left.set_child(Some(&shumate_map));
                                     frame_right.set_child(Some(&da));
-                                    y_zoom_spin_button.set_adjustment(&yzm);
-                                    y_zoom_spin_button.set_width_request(30);
+                                    y_zoom_scale.set_adjustment(&yzm);
+                                    y_zoom_scale.set_width_request(30);
                                     // Redraw the drawing area when the zoom changes.
-                                    y_zoom_spin_button
-                                        .adjustment()
-                                        .connect_value_changed(clone!(
-                                            #[strong]
-                                            da,
-                                            move |_| {
-                                                da.queue_draw();
-                                            },
-                                        ));
+                                    y_zoom_scale.adjustment().connect_value_changed(clone!(
+                                        #[strong]
+                                        da,
+                                        move |_| {
+                                            da.queue_draw();
+                                        },
+                                    ));
                                     build_summary(&data, &text_buffer);
                                 }
                             }
@@ -872,7 +864,7 @@ fn build_gui(app: &Application) {
 
     // Inner box contains only the map and text summary
     right_frame_box.append(&frame_right);
-    right_frame_box.append(&y_zoom_spin_button);
+    right_frame_box.append(&y_zoom_scale);
     left_frame_box.append(&frame_left);
     left_frame_box.set_homogeneous(true);
     // TextViews do not scroll by default; they must be wrapped in a ScrolledWindow.
@@ -889,7 +881,6 @@ fn build_gui(app: &Application) {
     main_box.set_homogeneous(true); // Ensures both frames take exactly half the window width
     // Outer box contains the above and the file load button.
     outer_box.append(&btn);
-    outer_box.append(&y_zoom_spin_button);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
     win.present();
