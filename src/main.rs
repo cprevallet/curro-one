@@ -541,7 +541,7 @@ fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>) {
         let lon_deg = semi_to_degrees(lon);
         let marker_content = gtk4::Label::new(Some("📍"));
         marker_content.set_halign(gtk4::Align::Center);
-        marker_content.set_valign(gtk4::Align::Center);
+        marker_content.set_valign(gtk4::Align::Baseline);
         let widget = &marker_content;
         let marker = Marker::builder()
             //            .label()
