@@ -307,7 +307,10 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
     //  Convert values to 32 bit and create a tuple.
     // Occasionally we see off by one errors in the data.
     // If true, Chop the last one. Must be careful comparing usize values.
-    let mut data_range = 0..x.len() - 1;
+    let mut data_range = 0..0;
+    if x.len() != 0 {
+        data_range = 0..x.len() - 1;
+    }
     if x.len() > y.len() && (x.len() != 0) && (y.len() != 0) {
         data_range = 0..y.len() - 1;
     }
