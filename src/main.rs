@@ -1,5 +1,5 @@
 use chrono::Datelike;
-use chrono::{Local, NaiveDateTime, TimeZone};
+use chrono::NaiveDateTime;
 use fitparser::{FitDataRecord, Value, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
 use gtk4::gdk::Display;
@@ -11,7 +11,7 @@ use gtk4::{
     TextView, gdk,
 };
 use libshumate::prelude::*;
-use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
+use libshumate::{Marker, SimpleMap};
 use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
@@ -574,28 +574,26 @@ fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>, symb
 // }
 
 // Helper function to return the date a run started on.
-fn get_run_start_date(data: &Vec<FitDataRecord>) {
+fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
+    let mut month = 0;
+    let mut day = 0;
+    let mut year = 0;
     for item in data {
         match item.kind() {
-            // Individual msgnum::records
             MesgNum::Session => {
-                // Retrieve the FitDataField struct.
                 for fld in item.fields().iter() {
                     if fld.name() == "start_time" {
                         let time_stamp = fld.value().clone().to_string();
-                        println!("{:<#}", time_stamp);
                         let from: Result<NaiveDateTime, chrono::ParseError> =
                             NaiveDateTime::parse_from_str(&time_stamp, "%Y-%m-%d %H:%M:%S %z");
-                        println!("{:?}", from);
-                        let dtime = match from {
+                        match from {
                             Ok(date_time) => {
-                                println!("{:?}", date_time);
-                                println!("{:?}", date_time.date());
-                                println!("{:?}", date_time.date().month());
-                                println!("{:?}", date_time.date().day());
+                                year = date_time.date().year();
+                                month = date_time.date().month();
+                                day = date_time.date().day();
                             }
-                            Err(e) => {
-                                println!("{:?}", e);
+                            Err(_e) => {
+                                panic!("Couldn't parse time_stamp.");
                             }
                         };
                     }
@@ -604,12 +602,34 @@ fn get_run_start_date(data: &Vec<FitDataRecord>) {
             _ => {}
         }
     }
+    return (year, month, day);
 }
 
 fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
-    get_run_start_date(data);
+    let mut symbol = "🏃";
+    let (_year, month, day) = get_run_start_date(data);
+    if month == 1 && day == 1 {
+        symbol = "🍾"
+    }
+    if month == 3 && day == 17 {
+        symbol = "🍀"
+    }
+    if month == 7 && day == 4 {
+        symbol = "🎆"
+    }
+    if month == 10 && day == 31 {
+        symbol = "🎃"
+    }
+    if month == 12 && day == 24 {
+        symbol = "🎅"
+    }
+    if month == 12 && day == 25 {
+        symbol = "🎁"
+    }
+    if month == 12 && day == 31 {
+        symbol = "🍾"
+    }
     let _ = "📍";
-    let symbol = "🏃";
     return symbol;
 }
 // Build the map.
