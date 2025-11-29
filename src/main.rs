@@ -1,3 +1,5 @@
+use chrono::Datelike;
+use chrono::{Local, NaiveDateTime, TimeZone};
 use fitparser::{FitDataRecord, Value, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
 use gtk4::gdk::Display;
@@ -15,7 +17,6 @@ use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
 use std::fs::File;
 use std::io::ErrorKind;
-
 // Only God and I knew what this was doing when I wrote it.
 // Know only God knows.
 
@@ -530,7 +531,7 @@ fn build_da(data: &Vec<FitDataRecord>) -> (DrawingArea, Adjustment, Adjustment) 
 }
 
 // Adds a PathLayer with a path of given coordinates to the map.
-fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>) {
+fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>, symbol: &str) {
     // Define the RGBA color using the builder pattern for gtk4::gdk::RGBA
     //    let blue = gdk::RGBA::parse("blue").expect("Failed to parse color");
     let viewport = map.viewport().expect("No viewport.");
@@ -539,7 +540,7 @@ fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>) {
     for (lat, lon) in marker_points {
         let lat_deg = semi_to_degrees(lat);
         let lon_deg = semi_to_degrees(lon);
-        let marker_content = gtk4::Label::new(Some("📍"));
+        let marker_content = gtk4::Label::new(Some(symbol));
         marker_content.set_halign(gtk4::Align::Center);
         marker_content.set_valign(gtk4::Align::Baseline);
         let widget = &marker_content;
@@ -557,21 +558,60 @@ fn add_marker_layer_to_map(map: &SimpleMap, marker_points: Vec<(f32, f32)>) {
 }
 
 // Adds a PathLayer with a path of given coordinates to the map.
-fn add_path_layer_to_map(map: &SimpleMap, path_points: Vec<(f32, f32)>) {
-    // Define the RGBA color using the builder pattern for gtk4::gdk::RGBA
-    let blue = gdk::RGBA::parse("blue").expect("Failed to parse color");
-    let viewport = map.viewport().expect("No viewport.");
-    let path_layer = PathLayer::new(&viewport);
-    path_layer.set_stroke_color(Some(&blue));
-    path_layer.set_stroke_width(3.0); // Thickness in pixels
-    for (lat, lon) in path_points {
-        let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
-        path_layer.add_node(&coord);
+// fn add_path_layer_to_map(map: &SimpleMap, path_points: Vec<(f32, f32)>) {
+//     // Define the RGBA color using the builder pattern for gtk4::gdk::RGBA
+//     let blue = gdk::RGBA::parse("blue").expect("Failed to parse color");
+//     let viewport = map.viewport().expect("No viewport.");
+//     let path_layer = PathLayer::new(&viewport);
+//     path_layer.set_stroke_color(Some(&blue));
+//     path_layer.set_stroke_width(3.0); // Thickness in pixels
+//     for (lat, lon) in path_points {
+//         let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
+//         path_layer.add_node(&coord);
+//     }
+//     // Add the layer to the map
+//     map.add_overlay_layer(&path_layer);
+// }
+
+// Helper function to return the date a run started on.
+fn get_run_start_date(data: &Vec<FitDataRecord>) {
+    for item in data {
+        match item.kind() {
+            // Individual msgnum::records
+            MesgNum::Session => {
+                // Retrieve the FitDataField struct.
+                for fld in item.fields().iter() {
+                    if fld.name() == "start_time" {
+                        let time_stamp = fld.value().clone().to_string();
+                        println!("{:<#}", time_stamp);
+                        let from: Result<NaiveDateTime, chrono::ParseError> =
+                            NaiveDateTime::parse_from_str(&time_stamp, "%Y-%m-%d %H:%M:%S %z");
+                        println!("{:?}", from);
+                        let dtime = match from {
+                            Ok(date_time) => {
+                                println!("{:?}", date_time);
+                                println!("{:?}", date_time.date());
+                                println!("{:?}", date_time.date().month());
+                                println!("{:?}", date_time.date().day());
+                            }
+                            Err(e) => {
+                                println!("{:?}", e);
+                            }
+                        };
+                    }
+                }
+            }
+            _ => {}
+        }
     }
-    // Add the layer to the map
-    map.add_overlay_layer(&path_layer);
 }
 
+fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
+    get_run_start_date(data);
+    let _ = "📍";
+    let symbol = "🏃";
+    return symbol;
+}
 // Build the map.
 fn build_map(data: &Vec<FitDataRecord>) -> SimpleMap {
     let map = SimpleMap::new();
@@ -583,7 +623,7 @@ fn build_map(data: &Vec<FitDataRecord>) -> SimpleMap {
     let run_path = get_xy(&data, "position_lat", "position_long");
     // Call the function to add the path layer
     //    add_path_layer_to_map(&map, run_path);
-    add_marker_layer_to_map(&map, run_path);
+    add_marker_layer_to_map(&map, run_path, get_symbol(&data));
     let viewport = map.viewport().expect("Couldn't get viewport.");
     // You may want to set an initial center and zoom level.
     let nec_lat = get_sess_record_field(data.clone(), "nec_lat");
