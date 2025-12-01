@@ -489,21 +489,45 @@ fn draw_graphs(
         let idx = (curr_adj.value() * (plotvals.len() as f64 - 1.0)).trunc() as usize;
         if idx > 0 && idx < plotvals.len() - 1 {
             let hair_x = plotvals[idx].0;
+            let hair_y = plotvals[idx].1;
+            let mylabel = format!(
+                "{:?}: {:5.2}\n {:?}: {:?}",
+                xlabel,
+                hair_x,
+                ylabel,
+                &y_formatter(&hair_y)
+            )
+            .to_string();
             let hair_y_min = plot_range.clone().0.start;
             let hair_y_max = plot_range.clone().1.end;
             let mut hairlinevals: Vec<(f32, f32)> = Vec::new();
             hairlinevals.push((hair_x, hair_y_min));
             hairlinevals.push((hair_x, hair_y_max));
-            let _ = chart.draw_series(DashedLineSeries::new(
-                hairlinevals,
-                1,
-                4,
-                ShapeStyle {
-                    color: BLACK.mix(1.0),
-                    filled: false,
-                    stroke_width: 1,
-                },
-            ));
+            let _ = chart
+                .draw_series(DashedLineSeries::new(
+                    hairlinevals,
+                    1,
+                    4,
+                    ShapeStyle {
+                        color: BLACK.mix(1.0),
+                        filled: false,
+                        stroke_width: 1,
+                    },
+                ))
+                .unwrap()
+                .label(mylabel)
+                .legend(|(x, y)| Rectangle::new([(x - 15, y + 1), (x, y)], BLACK));
+
+            chart
+                .configure_series_labels()
+                .position(SeriesLabelPosition::UpperRight)
+                .margin(20)
+                .legend_area_size(5)
+                .border_style(BLUE)
+                .background_style(BLUE.mix(0.1))
+                .label_font(("Calibri", 12))
+                .draw()
+                .unwrap();
         }
     }
     let _ = root.present();
