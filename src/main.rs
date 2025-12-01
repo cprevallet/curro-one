@@ -385,10 +385,10 @@ fn draw_graphs(
     let _ = root.fill(&WHITE);
     let areas = root.split_evenly((2, 3));
     // Declare and initialize.
-    let num_formatter = |x: &f32| format!("{:.3}", x);
+    let num_formatter = |x: &f32| format!("{:7.2}", x);
     let pace_formatter = |x: &f32| {
         let mins = x.trunc();
-        let secs = x - mins;
+        let secs = x.fract() * 60.0;
         format!("{:02.0}:{:02.0}", mins, secs)
     };
     let mut plotvals: Vec<(f32, f32)> = Vec::new();
@@ -491,13 +491,14 @@ fn draw_graphs(
             let hair_x = plotvals[idx].0;
             let hair_y = plotvals[idx].1;
             let mylabel = format!(
-                "{:<?}: {:<5.2} {:<?}: {:<?}",
+                "{:<1}: {:<5.2}{:<1}: {:<1}",
                 xlabel,
                 hair_x,
                 ylabel,
                 &y_formatter(&hair_y)
             )
             .to_string();
+            println!("{}", mylabel);
             let hair_y_min = plot_range.clone().0.start;
             let hair_y_max = plot_range.clone().1.end;
             let mut hairlinevals: Vec<(f32, f32)> = Vec::new();
@@ -515,17 +516,17 @@ fn draw_graphs(
                     },
                 ))
                 .unwrap()
-                .label(mylabel)
-                .legend(|(x, y)| Rectangle::new([(x - 15, y + 1), (x, y)], BLACK));
+                .label(mylabel);
+            // .legend(|(x, y)| Rectangle::new([(x, y + 1), (x, y)], BLACK));
 
             chart
                 .configure_series_labels()
-                .position(SeriesLabelPosition::UpperMiddle)
+                .position(SeriesLabelPosition::UpperLeft)
                 .margin(5)
-                // .legend_area_size(10)
-                .border_style(BLUE)
-                .background_style(BLUE.mix(0.1))
-                .label_font(("Calibri", 12))
+                .legend_area_size(0)
+                // .border_style(BLUE)
+                .background_style(BLUE.mix(0.15))
+                .label_font(("Calibri", 11))
                 .draw()
                 .unwrap();
         }
