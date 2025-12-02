@@ -614,7 +614,7 @@ fn add_path_layer_to_map(map: &SimpleMap, path_points: Vec<(f32, f32)>) {
     let viewport = map.viewport().expect("No viewport.");
     let path_layer = PathLayer::new(&viewport);
     path_layer.set_stroke_color(Some(&blue));
-    path_layer.set_stroke_width(3.0); // Thickness in pixels
+    path_layer.set_stroke_width(2.0); // Thickness in pixels
     for (lat, lon) in path_points {
         let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
         path_layer.add_node(&coord);
@@ -656,28 +656,29 @@ fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
 }
 
 fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
-    let mut symbol = "🏃";
+    //    let mut symbol = "🏃";
+    let mut symbol = concat!(r#"<span size="200%">"#, "🏃", "</span>#");
     let (_year, month, day) = get_run_start_date(data);
     if month == 1 && day == 1 {
-        symbol = "🍾"
+        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>#");
     }
     if month == 3 && day == 17 {
-        symbol = "🍀"
+        symbol = concat!(r#"<span size="200%">"#, "🍀", "</span>#");
     }
     if month == 7 && day == 4 {
-        symbol = "🎆"
+        symbol = concat!(r#"<span size="200%">"#, "🎆", "</span>#");
     }
     if month == 10 && day == 31 {
-        symbol = "🎃"
+        symbol = concat!(r#"<span size="200%">"#, "🎃", "</span>#");
     }
     if month == 12 && day == 24 {
-        symbol = "🎅"
+        symbol = concat!(r#"<span size="200%">"#, "🎅", "</span>#");
     }
     if month == 12 && day == 25 {
-        symbol = "🎁"
+        symbol = concat!(r#"<span size="200%">"#, "🎁", "</span>#");
     }
     if month == 12 && day == 31 {
-        symbol = "🍾"
+        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>#");
     }
     let _ = "📍";
     return symbol;
@@ -1017,10 +1018,14 @@ fn build_gui(app: &Application) {
                                             let curr_lon = run_path.clone()[idx].1;
                                             let lat_deg = semi_to_degrees(curr_lat);
                                             let lon_deg = semi_to_degrees(curr_lon);
-                                            let marker_content =
-                                                gtk4::Label::new(Some(get_symbol(&data)));
+                                            let marker_text = Some(get_symbol(&data));
+                                            let marker_content = gtk4::Label::new(marker_text);
                                             marker_content.set_halign(gtk4::Align::Center);
                                             marker_content.set_valign(gtk4::Align::Baseline);
+                                            // Style the symbol with mark-up language.
+                                            marker_content.set_markup(
+                                                Some(get_symbol(&data)).expect("No symbol."),
+                                            );
                                             let widget = &marker_content;
                                             let marker = Marker::builder()
                                                 //            .label()
