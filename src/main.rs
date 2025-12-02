@@ -869,16 +869,30 @@ fn get_geometry() -> (i32, i32) {
     if let Some(display) = Display::default() {
         // 2. Get the list of monitors (returns a ListModel)
         let monitors = display.monitors();
-
-        // 3. We typically want the first monitor (primary)
-        // Note: In a multi-monitor setup, you might want to find which monitor
-        // the window is actually on, but during "build_ui", the window isn't visible yet.
+        // We'll choose the smallest width, height of the two.
+        let num_monitors = monitors.n_items();
         if let Some(monitor_obj) = monitors.item(0) {
             // Downcast the generic object to a GdkMonitor
             if let Ok(monitor) = monitor_obj.downcast::<gdk::Monitor>() {
                 // 4. Get geometry (x, y, width, height)
-                let geometry = monitor.geometry();
-                return (geometry.width(), geometry.height());
+                let geometry0 = monitor.geometry();
+                if num_monitors == 1 {
+                    return (geometry0.width(), geometry0.height());
+                }
+                let g0 = geometry0.clone();
+                if num_monitors == 2 {
+                    if let Some(monitor_obj) = monitors.item(1) {
+                        // Downcast the generic object to a GdkMonitor
+                        if let Ok(monitor) = monitor_obj.downcast::<gdk::Monitor>() {
+                            // 4. Get geometry (x, y, width, height)
+                            let geometry1 = monitor.geometry();
+                            return (
+                                std::cmp::min(g0.width(), geometry1.width()),
+                                std::cmp::min(g0.height(), geometry1.width()),
+                            );
+                        }
+                    }
+                }
             }
         }
     }
@@ -975,13 +989,12 @@ fn build_gui(app: &Application) {
                                 if let Ok(data) = fitparser::from_reader(&mut file) {
                                     let (shumate_map, shumate_marker_layer) = build_map(&data);
                                     let (da, _, yzm, curr_pos) = build_da(&data);
-                                    let (width, _height) = get_geometry();
                                     frame_left.set_child(Some(&shumate_map));
 
-                                    let da_height = 0.5 * height as f32;
-                                    let da_width = 0.5 * width as f32;
-                                    da.set_content_height(da_height as i32);
-                                    da.set_content_width(da_width as i32);
+                                    let (width, height) = get_geometry();
+                                    println!("{}{}", width, height);
+                                    let w_height = (height - 300) as f32;
+                                    let w_width = (width - 600) as f32;
                                     let da_window = ScrolledWindow::builder()
                                         //        .hscrollbar_policy:(gtk::PolicyType::Never) // Disable horizontal scrolling
                                         // .min_content_width(300)
@@ -990,10 +1003,20 @@ fn build_gui(app: &Application) {
                                         .build();
                                     frame_right.set_child(Some(&da_window));
                                     da_window.set_size_request(
-                                        da_width.trunc() as i32,
-                                        da_height.trunc() as i32,
+                                        w_width.trunc() as i32,
+                                        w_height.trunc() as i32,
                                     );
                                     y_zoom_scale.set_adjustment(&yzm);
+
+                                    // da.set_content_height(
+                                    //     (0.90 * da_window.height() as f64) as i32,
+                                    // );
+                                    // da.set_content_width((0.90 * da_window.width() as f64) as i32);
+
+                                    da.set_size_request(
+                                        (0.90 * da_window.height() as f64) as i32,
+                                        (0.90 * da_window.width() as f64) as i32,
+                                    );
                                     y_zoom_scale.set_width_request(30);
                                     // Redraw the drawing area when the zoom changes.
                                     y_zoom_scale.adjustment().connect_value_changed(clone!(
@@ -1080,6 +1103,7 @@ fn build_gui(app: &Application) {
         // .min_content_height(200)
         .child(&text_view)
         .build();
+    scrolled_window.set_size_request(500, 300);
     left_frame_box.append(&scrolled_window);
     // Main box contains all of the above plus the graphs.
     main_box.append(&left_frame_box);
