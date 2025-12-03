@@ -2,7 +2,6 @@ use chrono::Datelike;
 use chrono::NaiveDateTime;
 use fitparser::{FitDataRecord, Value, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
-use gtk4::gdk::Display;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
@@ -1046,7 +1045,7 @@ fn build_gui(app: &Application) {
                                 let path_str = path.to_string_lossy();
                                 // Get values from fit file.
                                 let file_result = File::open(&*path_str);
-                                let mut file = match file_result {
+                                let file = match file_result {
                                     Ok(file) => file,
                                     Err(error) => match error.kind() {
                                         // Handle specifically "Not Found"
