@@ -42,6 +42,7 @@ fn get_unit_system(units_widget: &DropDown) -> Units {
     if let Some(item_obj) = model.item(units_widget.selected()) {
         if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
             let unit_string = String::from(string_obj.string());
+            //println!("{:?}", unit_string);
             if unit_string == "Metric" {
                 return Units::Metric;
             }
@@ -279,28 +280,74 @@ fn get_time_in_zone_field(data: &Vec<FitDataRecord>) -> (Option<Vec<f64>>, Optio
     return result;
 }
 
-// Convert speed (m/s) to pace(min/mile)
+// Convert speed (m/s) to pace(min/mile, min/km)
 fn cvt_pace(speed: f32, units: &Units) -> f32 {
-    if speed < 1.00 {
-        return 26.8224; //avoid divide by zero
-    } else {
-        return 26.8224 / speed;
+    match units {
+        Units::US => {
+            // println!("US");
+            if speed < 1.00 {
+                return 26.8224; //avoid divide by zero
+            } else {
+                return 26.8224 / speed;
+            }
+        }
+        Units::Metric => {
+            // println!("Metric");
+            if speed < 1.00 {
+                return 16.666667; //avoid divide by zero
+            } else {
+                return 16.666667 / speed;
+            }
+        }
+        Units::None => {
+            return speed;
+        }
     }
 }
 
-// Convert distance meters to miles.
+// Convert distance meters to miles, km.
 fn cvt_distance(distance: f32, units: &Units) -> f32 {
-    return distance * 0.00062137119;
+    match units {
+        Units::US => {
+            return distance * 0.00062137119;
+        }
+        Units::Metric => {
+            return distance * 0.001;
+        }
+        Units::None => {
+            return distance;
+        }
+    }
 }
 
-// Convert altitude meters to feet.
+// Convert altitude meters to feet, m.
 fn cvt_altitude(altitude: f32, units: &Units) -> f32 {
-    return altitude * 3.2808399;
+    match units {
+        Units::US => {
+            return altitude * 3.2808399;
+        }
+        Units::Metric => {
+            return altitude * 1.0;
+        }
+        Units::None => {
+            return altitude;
+        }
+    }
 }
 
-// Convert temperature deg C  to deg F.
+// Convert temperature deg C  to deg F, deg C.
 fn cvt_temperature(temperature: f32, units: &Units) -> f32 {
-    return temperature * 1.8 + 32.0;
+    match units {
+        Units::US => {
+            return temperature * 1.8 + 32.0;
+        }
+        Units::Metric => {
+            return temperature * 1.0;
+        }
+        Units::None => {
+            return temperature;
+        }
+    }
 }
 
 // Convert semi-circles to degrees.
@@ -355,7 +402,7 @@ fn get_xy(
                 "enhanced_speed" => {
                     x_user.push(cvt_pace(x[index] as f32, &user_unit));
                 }
-                "altitude" => {
+                "enhanced_altitude" => {
                     x_user.push(cvt_altitude(x[index] as f32, &user_unit));
                 }
                 "temperature" => {
@@ -376,7 +423,7 @@ fn get_xy(
                 "enhanced_speed" => {
                     y_user.push(cvt_pace(y[index] as f32, &user_unit));
                 }
-                "altitude" => {
+                "enhanced_altitude" => {
                     y_user.push(cvt_altitude(y[index] as f32, &user_unit));
                 }
                 "temperature" => {
@@ -1085,7 +1132,7 @@ fn build_gui(app: &Application) {
         .margin_start(5)
         .margin_end(5)
         .build();
-    let uom = StringList::new(&["Metric", "English"]);
+    let uom = StringList::new(&["Metric", "US"]);
     let units_widget = DropDown::builder().model(&uom).build();
     btn.connect_clicked(clone!(
         #[strong]
