@@ -377,6 +377,7 @@ fn get_xy(data: &Vec<FitDataRecord>, x_field_name: &str, y_field_name: &str) -> 
 // Use plotters.rs to draw a graph on the drawing area.
 fn draw_graphs(
     d: &Vec<FitDataRecord>,
+    units: &DropDown,
     xzm: &Adjustment,
     yzm: &Adjustment,
     curr_adj: &Adjustment,
@@ -595,9 +596,11 @@ fn build_da(
     let x_zoom = xzm.clone();
     let y_zoom = yzm.clone();
     let pos = curr_pos.clone();
+    let units_clone = units.clone();
     drawing_area.set_draw_func(move |_drawing_area, cr, width, height| {
         draw_graphs(
             &d,
+            &units_clone,
             &x_zoom,
             &y_zoom,
             &curr_pos,
