@@ -284,7 +284,6 @@ fn get_time_in_zone_field(data: &Vec<FitDataRecord>) -> (Option<Vec<f64>>, Optio
 fn cvt_pace(speed: f32, units: &Units) -> f32 {
     match units {
         Units::US => {
-            // println!("US");
             if speed < 1.00 {
                 return 26.8224; //avoid divide by zero
             } else {
@@ -292,7 +291,6 @@ fn cvt_pace(speed: f32, units: &Units) -> f32 {
             }
         }
         Units::Metric => {
-            // println!("Metric");
             if speed < 1.00 {
                 return 16.666667; //avoid divide by zero
             } else {
@@ -456,6 +454,7 @@ fn draw_graphs(
 ) {
     let zoom_x: f32 = xzm.value() as f32;
     let zoom_y: f32 = yzm.value() as f32;
+    let user_unit = get_unit_system(units_widget);
     //        println!("{:?}", d);
     // --- 🎨 Custom Drawing Logic Starts Here ---
     let root = plotters_cairo::CairoBackend::new(&cr, (width as u32, height as u32))
@@ -488,8 +487,20 @@ fn draw_graphs(
             plot_range = set_plot_range(&plotvals.clone(), zoom_x, zoom_y);
             y_formatter = Box::new(num_formatter);
             caption = "Elevation";
-            ylabel = "Elevation(feet)";
-            xlabel = "Distance(miles)";
+            match user_unit {
+                Units::US => {
+                    ylabel = "Elevation(feet)";
+                    xlabel = "Distance(miles)";
+                }
+                Units::Metric => {
+                    ylabel = "Elevation(m)";
+                    xlabel = "Distance(km)";
+                }
+                Units::None => {
+                    ylabel = "";
+                    xlabel = "";
+                }
+            }
             color = &RED;
         }
         if idx == 2 {
@@ -500,8 +511,20 @@ fn draw_graphs(
             plot_range = set_plot_range(&plotvals.clone(), zoom_x, zoom_y);
             y_formatter = Box::new(num_formatter);
             caption = "Heart rate";
-            ylabel = "Heart rate(bpm)";
-            xlabel = "Distance(miles)";
+            match user_unit {
+                Units::US => {
+                    ylabel = "Heart rate(bpm)";
+                    xlabel = "Distance(miles)";
+                }
+                Units::Metric => {
+                    ylabel = "Heart rate(bpm)";
+                    xlabel = "Distance(km)";
+                }
+                Units::None => {
+                    ylabel = "";
+                    xlabel = "";
+                }
+            }
             color = &BLUE;
         }
         if idx == 3 {
@@ -512,8 +535,20 @@ fn draw_graphs(
             plot_range = set_plot_range(&plotvals.clone(), zoom_x, zoom_y);
             y_formatter = Box::new(num_formatter);
             caption = "Cadence";
-            ylabel = "Cadence";
-            xlabel = "Distance(miles)";
+            match user_unit {
+                Units::US => {
+                    ylabel = "Cadence";
+                    xlabel = "Distance(miles)";
+                }
+                Units::Metric => {
+                    ylabel = "Cadence";
+                    xlabel = "Distance(km)";
+                }
+                Units::None => {
+                    ylabel = "";
+                    xlabel = "";
+                }
+            }
             color = &CYAN;
         }
         if idx == 4 {
@@ -524,8 +559,20 @@ fn draw_graphs(
             plot_range = set_plot_range(&plotvals.clone(), zoom_x, zoom_y);
             y_formatter = Box::new(pace_formatter);
             caption = "Pace";
-            ylabel = "Pace(min/mile)";
-            xlabel = "Distance(miles)";
+            match user_unit {
+                Units::US => {
+                    ylabel = "Pace(min/mile)";
+                    xlabel = "Distance(miles)";
+                }
+                Units::Metric => {
+                    ylabel = "Pace(min/km)";
+                    xlabel = "Distance(km)";
+                }
+                Units::None => {
+                    ylabel = "";
+                    xlabel = "";
+                }
+            }
             color = &GREEN;
         }
         if idx == 5 {
@@ -536,8 +583,20 @@ fn draw_graphs(
             plot_range = set_plot_range(&plotvals.clone(), zoom_x, zoom_y);
             y_formatter = Box::new(num_formatter);
             caption = "Temperature";
-            ylabel = "Temperature (°F)";
-            xlabel = "Distance(miles)";
+            match user_unit {
+                Units::US => {
+                    ylabel = "Temperature(°F)";
+                    xlabel = "Distance(miles)";
+                }
+                Units::Metric => {
+                    ylabel = "Temperature(°C)";
+                    xlabel = "Distance(km)";
+                }
+                Units::None => {
+                    ylabel = "";
+                    xlabel = "";
+                }
+            }
             color = &BROWN;
         }
         if idx == 6 {
