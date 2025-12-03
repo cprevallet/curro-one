@@ -17,7 +17,7 @@ use plotters::style::full_palette::CYAN;
 use std::fs::File;
 use std::io::ErrorKind;
 // Only God and I knew what this was doing when I wrote it.
-// Know only God knows.
+// Now only God knows.
 
 static FRACT_OF_SCREEN: f32 = 0.85;
 
