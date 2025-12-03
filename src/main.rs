@@ -5,9 +5,9 @@ use gtk4::cairo::Context;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Adjustment, Application, ApplicationWindow, Button, DrawingArea, FileChooserAction,
+    Adjustment, Application, ApplicationWindow, Button, DrawingArea, DropDown, FileChooserAction,
     FileChooserNative, Frame, Image, Label, Orientation, ResponseType, Scale, ScrolledWindow,
-    TextBuffer, TextView, gdk,
+    StringList, StringObject, TextBuffer, TextView, gdk,
 };
 use libshumate::prelude::*;
 use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
@@ -1039,6 +1039,19 @@ fn build_gui(app: &Application) {
         .margin_end(5)
         .build();
 
+    let uom = StringList::new(&["English", "Metric"]);
+    let units = DropDown::builder().model(&uom).build();
+    fn get_units(uom: &StringList, units: &DropDown) -> String {
+        if let Some(item_obj) = uom.item(units.selected()) {
+            if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
+                return String::from(string_obj.string());
+                //                println!("{:?}", string_obj.string());
+            }
+        }
+        return String::from("");
+    }
+    println!("{:?}", get_units(&uom, &units).as_str());
+
     btn.connect_clicked(clone!(
         #[strong]
         win,
@@ -1099,6 +1112,7 @@ fn build_gui(app: &Application) {
     )); //button-connect-clicked
 
     outer_box.append(&btn);
+    outer_box.append(&units);
     outer_box.append(&main_box);
     win.set_child(Some(&outer_box));
     win.maximize();
