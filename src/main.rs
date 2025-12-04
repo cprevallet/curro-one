@@ -19,7 +19,6 @@ use std::io::ErrorKind;
 // Only God and I knew what this was doing when I wrote it.
 // Now only God knows.
 
-static FRACT_OF_SCREEN: f32 = 0.85;
 // Unit of measure system.
 enum Units {
     Metric,
@@ -1226,20 +1225,13 @@ fn parse_and_display_run(
     main_pane.set_end_child(Some(&right_frame_pane));
 
     // 5. Size the widgets.
-    let (width, height) = get_geometry(&win);
-    let win_width = (FRACT_OF_SCREEN * width as f32).trunc() as i32;
-    let win_height = (FRACT_OF_SCREEN * height as f32).trunc() as i32;
-    win.set_default_width(win_width);
-    win.set_default_height(win_height);
+    let (width, _height) = get_geometry(&win);
     scrolled_window.set_size_request(500, 300);
-    let da_window_height = win_height - 300;
-    let da_window_width = win_width - 600;
-    da_window.set_size_request(da_window_width, da_window_height);
-    da.set_size_request(
-        (0.90 * da_window.height() as f32) as i32,
-        (0.90 * da_window.width() as f32) as i32,
-    );
-    win.unmaximize();
+    // Set where the splits start (in pixels from the left hand side.)
+    let main_split = (0.3 * width as f32).trunc() as i32;
+    let right_frame_split = (0.7 * (width as f32 - main_split as f32)).trunc() as i32;
+    main_pane.set_position(main_split);
+    right_frame_pane.set_position(right_frame_split);
 
     // 6. Configure widgets not handled during instantiation.
     y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
