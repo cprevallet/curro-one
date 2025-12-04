@@ -1140,7 +1140,8 @@ fn parse_and_display_run(
     let curr_pos_adj = Adjustment::builder()
         .lower(0.0)
         .upper(1.0)
-        .step_increment(0.05)
+        .step_increment(0.01)
+        .page_increment(0.01)
         .value(0.0)
         .build();
     let curr_pos_scale = Scale::builder()
@@ -1148,13 +1149,14 @@ fn parse_and_display_run(
         .adjustment(&curr_pos_adj)
         .draw_value(false)
         .vexpand(false)
-        .width_request(90)
+        .width_request(120)
         .height_request(30)
         .build();
     let y_zoom_adj = Adjustment::builder()
         .lower(0.5)
         .upper(4.0)
         .step_increment(0.1)
+        .page_increment(0.1)
         .value(2.0)
         .build();
     let y_zoom_scale = Scale::builder()
@@ -1162,7 +1164,7 @@ fn parse_and_display_run(
         .adjustment(&y_zoom_adj)
         .draw_value(false)
         .vexpand(false)
-        .width_request(90)
+        .width_request(120)
         .height_request(30)
         .build();
     let curr_pos_label = Label::new(Some("🏃‍➡️"));
