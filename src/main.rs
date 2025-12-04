@@ -1160,7 +1160,10 @@ fn parse_and_display_run(
     let text_view = TextView::builder().monospace(true).margin_start(10).build();
     let frame_left = Frame::builder().build();
     let frame_right = Frame::builder().build();
-    let left_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
+    // let left_frame_box = gtk4::Box::new(Orientation::Vertical, 10);
+    let left_frame_pane = gtk4::Paned::builder()
+        .orientation(Orientation::Vertical)
+        .build();
     let right_frame_box = gtk4::Box::new(Orientation::Horizontal, 10);
     let scrolled_window = ScrolledWindow::builder().child(&text_view).build();
     let da_window = ScrolledWindow::builder()
@@ -1217,9 +1220,11 @@ fn parse_and_display_run(
     curr_pos_scale.set_adjustment(&curr_pos);
 
     // 5. Configure the widget layout.
-    left_frame_box.append(&frame_left);
-    left_frame_box.set_homogeneous(true);
-    left_frame_box.append(&scrolled_window);
+    // left_frame_box.append(&frame_left);
+    // left_frame_box.set_homogeneous(true);
+    // left_frame_box.append(&scrolled_window);
+    left_frame_pane.set_start_child(Some(&frame_left));
+    left_frame_pane.set_end_child(Some(&scrolled_window));
     right_frame_box.append(&frame_right);
     controls_box.append(&y_zoom_label);
     controls_box.append(&y_zoom_scale);
@@ -1227,7 +1232,7 @@ fn parse_and_display_run(
     controls_box.append(&curr_pos_scale);
     right_frame_box.append(&controls_box);
     // Main box contains all of the above plus the graphs.
-    main_pane.set_start_child(Some(&left_frame_box));
+    main_pane.set_start_child(Some(&left_frame_pane));
     main_pane.set_end_child(Some(&right_frame_box));
 
     // 6. Size the widgets.
