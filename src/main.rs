@@ -838,6 +838,37 @@ fn build_map(data: &Vec<FitDataRecord>) -> (SimpleMap, MarkerLayer) {
     let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
     // Call the function to add the path layer
     add_path_layer_to_map(&map, run_path.clone());
+    // add pins for the starting and stopping points of the run
+    let startstop_layer = add_marker_layer_to_map(&map);
+    let len = run_path.len();
+    if len > 0 {
+        let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
+        let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
+        let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
+        let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
+        let start_content = gtk4::Label::new(Some("🟢"));
+        let stop_content = gtk4::Label::new(Some("🔴"));
+        start_content.set_halign(gtk4::Align::Center);
+        start_content.set_valign(gtk4::Align::Baseline);
+        stop_content.set_halign(gtk4::Align::Center);
+        stop_content.set_valign(gtk4::Align::Baseline);
+        let start_widget = &start_content;
+        let stop_widget = &stop_content;
+        let start_marker = Marker::builder()
+            .latitude(start_lat_deg)
+            .longitude(start_lon_deg)
+            .child(&start_widget.clone())
+            // Set the visual content widget
+            .build();
+        startstop_layer.add_marker(&start_marker);
+        let stop_marker = Marker::builder()
+            .latitude(stop_lat_deg)
+            .longitude(stop_lon_deg)
+            .child(&stop_widget.clone())
+            // Set the visual content widget
+            .build();
+        startstop_layer.add_marker(&stop_marker);
+    }
     let marker_layer = add_marker_layer_to_map(&map);
     let viewport = map.viewport().expect("Couldn't get viewport.");
     // You may want to set an initial center and zoom level.
