@@ -607,6 +607,7 @@ fn draw_graphs(
             // Set the size of the label region
             .x_label_area_size(40)
             .y_label_area_size(60)
+            .margin(10)
             // Finally attach a coordinate on the drawing area and make a chart context
             .build_cartesian_2d(plot_range.clone().0, plot_range.clone().1)
             .unwrap();
@@ -1119,28 +1120,6 @@ fn build_summary(data: &Vec<FitDataRecord>, units_widget: &DropDown, text_buffer
     };
 }
 
-// Find out how many pixels we have to work with.
-fn get_geometry(window: &ApplicationWindow) -> (i32, i32) {
-    // Get the GdkSurface (only exists if window is realized)
-    if let Some(surface) = window.surface() {
-        let display = gtk4::prelude::WidgetExt::display(window);
-        // get the monitor for this window
-        // Note: This returns the monitor containing the largest area of the window
-        if let Some(monitor) = display.monitor_at_surface(&surface) {
-            // Get geometry and scale factor.
-            let geometry = monitor.geometry();
-            let scale = monitor.scale_factor(); //scale is one for non-hi res 
-            let logical_w = geometry.width();
-            let logical_h = geometry.height();
-            let phys_w = logical_w * scale;
-            let phys_h = logical_h * scale;
-            return (phys_w, phys_h);
-        }
-    }
-    // Least common denominator.
-    return (1024, 768);
-}
-
 // This is the main body of the program.  After reading the fit file,
 // create and display the rest of the UI.
 fn parse_and_display_run(
@@ -1225,13 +1204,14 @@ fn parse_and_display_run(
     main_pane.set_end_child(Some(&right_frame_pane));
 
     // 5. Size the widgets.
-    let (width, _height) = get_geometry(&win);
     scrolled_window.set_size_request(500, 300);
     // Set where the splits start (in pixels from the left hand side.)
-    let main_split = (0.3 * width as f32).trunc() as i32;
-    let right_frame_split = (0.7 * (width as f32 - main_split as f32)).trunc() as i32;
+    let main_split = (0.3 * win.width() as f32).trunc() as i32;
+    let right_frame_split = (0.7 * (win.width() as f32 - main_split as f32)).trunc() as i32;
     main_pane.set_position(main_split);
     right_frame_pane.set_position(right_frame_split);
+    // Set where the splits start (in pixels from the top.)
+    left_frame_pane.set_position((0.5 * win.height() as f32) as i32);
 
     // 6. Configure widgets not handled during instantiation.
     y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
@@ -1412,7 +1392,7 @@ fn build_gui(app: &Application) {
                             }
                         }
                     } else {
-                        println!("User cancelled");
+                        // println!("User cancelled");
                     }
                     // unlike FileChooserDialog, 'native' creates a transient reference.
                     // It's good practice to drop references, but GTK handles the cleanup
