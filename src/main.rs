@@ -1146,14 +1146,15 @@ fn get_geometry(window: &ApplicationWindow) -> (i32, i32) {
 // create and display the rest of the UI.
 fn parse_and_display_run(
     win: &ApplicationWindow,
-    main_box: &gtk4::Box,
+    main_pane: &gtk4::Paned,
     data: &Vec<FitDataRecord>,
     units_widget: &DropDown,
 ) {
     // 1. Clear out any previous widgets upon opening a second file.
-    while let Some(child) = main_box.last_child() {
-        main_box.remove(&child)
-    }
+    // while let Some(child) = main_pane.last_child() {
+    //     // main_pane.set_start_child(None);
+    //     // main_pane.set_end_child(None);
+    // }
 
     // 2. Instantiate the main UI widgets.
     let text_view = TextView::builder().monospace(true).margin_start(10).build();
@@ -1226,8 +1227,8 @@ fn parse_and_display_run(
     controls_box.append(&curr_pos_scale);
     right_frame_box.append(&controls_box);
     // Main box contains all of the above plus the graphs.
-    main_box.append(&left_frame_box);
-    main_box.append(&right_frame_box);
+    main_pane.set_start_child(Some(&left_frame_box));
+    main_pane.set_end_child(Some(&right_frame_box));
 
     // 6. Size the widgets.
     let (width, height) = get_geometry(&win);
@@ -1307,17 +1308,17 @@ fn build_gui(app: &Application) {
         .build();
 
     // Main horizontal container to hold the two frames side-by-side,
-    // outer box wraps main_box.
+    // outer box wraps main_pane.
     let outer_box = gtk4::Box::builder()
         .orientation(Orientation::Vertical)
         .spacing(10)
         .build();
-    let main_box = gtk4::Box::builder()
-        .orientation(Orientation::Horizontal)
-        .vexpand(true)
-        .hexpand(true)
-        .spacing(10)
-        .build();
+    // let main_pane = gtk4::Box::builder()
+    //     .orientation(Orientation::Horizontal)
+    //     .vexpand(true)
+    //     .hexpand(true)
+    //     .spacing(10)
+    //     .build();
     let button_box = gtk4::Box::builder()
         .orientation(Orientation::Horizontal)
         .vexpand(false)
@@ -1326,6 +1327,7 @@ fn build_gui(app: &Application) {
         .height_request(20)
         .spacing(10)
         .build();
+    let main_pane = gtk4::Paned::builder().build();
 
     // Button with icon and label.
     let button_content = gtk4::Box::new(Orientation::Horizontal, 6);
@@ -1369,7 +1371,7 @@ fn build_gui(app: &Application) {
         #[strong]
         win,
         #[strong]
-        main_box,
+        main_pane,
         #[strong]
         units_widget,
         move |_| {
@@ -1388,7 +1390,7 @@ fn build_gui(app: &Application) {
                 #[strong]
                 win,
                 #[strong]
-                main_box,
+                main_pane,
                 #[strong]
                 units_widget,
                 move |dialog, response| {
@@ -1412,17 +1414,17 @@ fn build_gui(app: &Application) {
                                     },
                                 };
                                 if let Ok(data) = fitparser::from_reader(&mut file) {
-                                    parse_and_display_run(&win, &main_box, &data, &units_widget);
+                                    parse_and_display_run(&win, &main_pane, &data, &units_widget);
                                     // Hook-up the units_widget change handler.
                                     units_widget.connect_selected_notify(clone!(
                                         #[strong]
                                         win,
                                         #[strong]
-                                        main_box,
+                                        main_pane,
                                         #[strong]
                                         data,
                                         move |me| {
-                                            parse_and_display_run(&win, &main_box, &data, &me);
+                                            parse_and_display_run(&win, &main_pane, &data, &me);
                                         }
                                     ));
                                 }
@@ -1464,7 +1466,7 @@ fn build_gui(app: &Application) {
     button_box.append(&units_widget);
     button_box.append(&about_btn);
     outer_box.append(&button_box);
-    outer_box.append(&main_box);
+    outer_box.append(&main_pane);
     win.set_child(Some(&outer_box));
     win.maximize();
     win.present();
