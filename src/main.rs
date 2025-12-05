@@ -1050,7 +1050,7 @@ fn build_summary(data: &Vec<FitDataRecord>, units_widget: &DropDown, text_buffer
                             text_buffer.insert(&mut end, &value_str);
                         }
                         "min_temperature" | "max_temperature" | "avg_temperature" => {
-                            let val: i64 = fld.value().try_into().expect("conversion failed");
+                            let val: i64 = fld.value().try_into().unwrap();
                             let val_cvt = cvt_temperature(val as f32, &user_unit);
                             match user_unit {
                                 Units::US => {
