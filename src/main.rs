@@ -14,8 +14,10 @@ use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
 use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
+use std::cell::RefCell;
 use std::fs::File;
 use std::io::ErrorKind;
+use std::rc::Rc;
 // Only God and I knew what this was doing when I wrote it.
 // Now only God knows.
 
@@ -1348,28 +1350,132 @@ fn parse_and_display_run(
         },
     ));
 }
+struct UserInterface {
+    win: ApplicationWindow,
+    outer_box: gtk4::Box,
+    button_box: gtk4::Box,
+    main_pane: gtk4::Paned,
+    btn: Button,
+    text_view: TextView,
+    frame_left: Frame,
+    frame_right: Frame,
+    left_frame_pane: gtk4::Paned,
+    right_frame_pane: gtk4::Paned,
+    scrolled_window: ScrolledWindow,
+    da_window: ScrolledWindow,
+    curr_pos_adj: Adjustment,
+    curr_pos_scale: Scale,
+    y_zoom_adj: Adjustment,
+    y_zoom_scale: Scale,
+    curr_pos_label: Label,
+    y_zoom_label: Label,
+    controls_box: gtk4::Box,
+    uom: StringList,
+    units_widget: DropDown,
+    about_label: String,
+    about_btn: Button,
+}
 
-fn build_gui(app: &Application) {
-    let win = ApplicationWindow::builder()
-        .application(app)
-        .title("SiliconSneaker II")
-        .build();
+fn instantiate_ui(app: &Application) -> UserInterface {
+    let ui = UserInterface {
+        win: ApplicationWindow::builder()
+            .application(app)
+            .title("SiliconSneaker II")
+            .build(),
 
-    // Main horizontal container to hold the two frames side-by-side,
-    // outer box wraps main_pane.
-    let outer_box = gtk4::Box::builder()
-        .orientation(Orientation::Vertical)
-        .spacing(10)
-        .build();
-    let button_box = gtk4::Box::builder()
-        .orientation(Orientation::Horizontal)
-        .vexpand(false)
-        .hexpand(false)
-        .width_request(200)
-        .height_request(20)
-        .spacing(10)
-        .build();
-    let main_pane = gtk4::Paned::builder().build();
+        // Main horizontal container to hold the two frames side-by-side,
+        // outer box wraps main_pane.
+        outer_box: gtk4::Box::builder()
+            .orientation(Orientation::Vertical)
+            .spacing(10)
+            .build(),
+        button_box: gtk4::Box::builder()
+            .orientation(Orientation::Horizontal)
+            .vexpand(false)
+            .hexpand(false)
+            .width_request(200)
+            .height_request(20)
+            .spacing(10)
+            .build(),
+        main_pane: gtk4::Paned::builder().build(),
+        btn: Button::builder()
+            .margin_top(5)
+            .margin_bottom(5)
+            .margin_start(5)
+            .margin_end(5)
+            .height_request(30)
+            .width_request(50)
+            .build(),
+
+        text_view: TextView::builder().monospace(true).margin_start(10).build(),
+        frame_left: Frame::builder().build(),
+        frame_right: Frame::builder().build(),
+        left_frame_pane: gtk4::Paned::builder()
+            .orientation(Orientation::Vertical)
+            .build(),
+        right_frame_pane: gtk4::Paned::builder()
+            .orientation(Orientation::Horizontal)
+            .build(),
+        scrolled_window: ScrolledWindow::builder().build(),
+        da_window: ScrolledWindow::builder()
+            .vexpand(true)
+            .hexpand(true)
+            .build(),
+        curr_pos_adj: Adjustment::builder()
+            .lower(0.0)
+            .upper(1.0)
+            .step_increment(0.01)
+            .page_increment(0.01)
+            .value(0.0)
+            .build(),
+        curr_pos_scale: Scale::builder()
+            .orientation(Orientation::Horizontal)
+            .draw_value(false)
+            .vexpand(false)
+            .width_request(120)
+            .height_request(30)
+            .build(),
+        y_zoom_adj: Adjustment::builder()
+            .lower(0.5)
+            .upper(4.0)
+            .step_increment(0.1)
+            .page_increment(0.1)
+            .value(2.0)
+            .build(),
+        y_zoom_scale: Scale::builder()
+            .orientation(Orientation::Horizontal)
+            .draw_value(false)
+            .vexpand(false)
+            .width_request(120)
+            .height_request(30)
+            .build(),
+        curr_pos_label: Label::new(Some("🏃‍➡️")),
+        y_zoom_label: Label::new(Some("🔍")),
+        controls_box: gtk4::Box::new(Orientation::Vertical, 10),
+        uom: StringList::new(&["🇪🇺 Metric", "🇺🇸 US"]),
+
+        units_widget: DropDown::builder()
+            .margin_top(5)
+            .margin_bottom(5)
+            .margin_start(5)
+            .margin_end(5)
+            .height_request(30)
+            .width_request(100)
+            .build(),
+        about_label: String::from("About"),
+        about_btn: Button::builder()
+            .margin_top(5)
+            .margin_bottom(5)
+            .margin_start(5)
+            .margin_end(5)
+            .height_request(30)
+            .width_request(50)
+            .build(),
+    };
+    ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
+    ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
+    ui.about_btn.set_label(&ui.about_label);
+    ui.units_widget.set_model(Some(&ui.uom));
 
     // Button with icon and label.
     let button_content = gtk4::Box::new(Orientation::Horizontal, 6);
@@ -1379,63 +1485,59 @@ fn build_gui(app: &Application) {
     let label = Label::new(Some("Select a FIT file..."));
     button_content.append(&icon);
     button_content.append(&label);
-    let btn = Button::builder()
-        .child(&button_content)
-        .margin_top(5)
-        .margin_bottom(5)
-        .margin_start(5)
-        .margin_end(5)
-        .height_request(30)
-        .width_request(50)
-        .build();
-    let uom = StringList::new(&["🇪🇺 Metric", "🇺🇸 US"]);
-    let units_widget = DropDown::builder()
-        .model(&uom)
-        .margin_top(5)
-        .margin_bottom(5)
-        .margin_start(5)
-        .margin_end(5)
-        .height_request(30)
-        .width_request(100)
-        .build();
-    let about_label = Label::new(Some("About"));
-    let about_btn = Button::builder()
-        .child(&about_label)
-        .margin_top(5)
-        .margin_bottom(5)
-        .margin_start(5)
-        .margin_end(5)
-        .height_request(30)
-        .width_request(50)
-        .build();
+    ui.btn.set_child(Some(&button_content));
 
-    btn.connect_clicked(clone!(
+    ui.win.set_child(Some(&ui.outer_box));
+    ui.button_box.append(&ui.btn);
+    ui.button_box.append(&ui.units_widget);
+    ui.button_box.append(&ui.about_btn);
+    ui.outer_box.append(&ui.button_box);
+    ui.outer_box.append(&ui.main_pane);
+    //    ui.win.set_child(Some(&ui.outer_box));
+    ui.win.maximize();
+    ui.win.present();
+    return ui;
+}
+
+fn build_gui(app: &Application) {
+    // Instantiate the views.
+    let ui_original = instantiate_ui(app);
+    // // Create a new reference count for the user_interface structure.
+    let ui_rc = Rc::new(ui_original);
+    let ui1 = Rc::clone(&ui_rc);
+    ui1.btn.connect_clicked(clone!(
         #[strong]
-        win,
-        #[strong]
-        main_pane,
-        #[strong]
-        units_widget,
+        ui1,
+        // #[strong]
+        // main_pane,
+        // #[strong]
+        // units_widget,
         move |_| {
+            // --- Borrow the inner value MUTABLY (runtime check) ---
+            // let ui = ui_state.borrow();
             // 1. Create the Native Dialog
             // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
             let native = FileChooserNative::new(
                 Some("Open File Native"),
-                Some(&win),
+                Some(&ui1.win),
                 FileChooserAction::Open,
                 Some("Open"),   // Custom label for the "OK" button
                 Some("Cancel"), // Custom label for the "Cancel" button
             );
 
+            let ui2 = Rc::clone(&ui_rc);
             // 2. Connect to the response signal
-            native.connect_response(clone!(
-                #[strong]
-                win,
-                #[strong]
-                main_pane,
-                #[strong]
-                units_widget,
+            // let ui_response = Rc::clone(&ui_state);
+            native.connect_response(
+                //clone!(
+                // #[strong]
+                // win,
+                // #[strong]
+                // main_pane,
+                // #[strong]
+                // units_widget,
                 move |dialog, response| {
+                    // let ui = ui_response.borrow();
                     if response == ResponseType::Accept {
                         // Extract the file path
                         if let Some(file) = dialog.file() {
@@ -1445,7 +1547,8 @@ fn build_gui(app: &Application) {
                                 let file_result = File::open(&*path_str);
                                 let mut file = match file_result {
                                     Ok(file) => {
-                                        let c_title = win.title().unwrap().to_string().to_owned();
+                                        let c_title =
+                                            ui2.win.title().unwrap().to_string().to_owned();
                                         let mut pfx = c_title
                                             .chars()
                                             .take_while(|&ch| ch != ':')
@@ -1453,7 +1556,7 @@ fn build_gui(app: &Application) {
                                         pfx.push_str(":");
                                         pfx.push_str(" ");
                                         pfx.push_str(&path_str);
-                                        win.set_title(Some(&pfx.to_string()));
+                                        ui2.win.set_title(Some(&pfx.to_string()));
                                         file
                                     }
                                     Err(error) => match error.kind() {
@@ -1467,19 +1570,32 @@ fn build_gui(app: &Application) {
                                     },
                                 };
                                 if let Ok(data) = fitparser::from_reader(&mut file) {
-                                    parse_and_display_run(&win, &main_pane, &data, &units_widget);
+                                    parse_and_display_run(
+                                        &ui2.win,
+                                        &ui2.main_pane,
+                                        &data,
+                                        &ui2.units_widget,
+                                    );
                                     // Hook-up the units_widget change handler.
-                                    units_widget.connect_selected_notify(clone!(
-                                        #[strong]
-                                        win,
-                                        #[strong]
-                                        main_pane,
-                                        #[strong]
-                                        data,
-                                        move |me| {
-                                            parse_and_display_run(&win, &main_pane, &data, &me);
-                                        }
-                                    ));
+                                    // let data_clone = data.clone();
+                                    // let ui_borrow = ui.borrow();
+                                    // ui_borrow.units_widget.connect_selected_notify(
+                                    //     // clone!(
+                                    //     // #[strong]
+                                    //     // win,
+                                    //     // #[strong]
+                                    //     // main_pane,
+                                    //     // #[strong]
+                                    //     // data,
+                                    //     move |me| {
+                                    //         parse_and_display_run(
+                                    //             &ui.win,
+                                    //             &ui.main_pane,
+                                    //             &data_clone,
+                                    //             &me,
+                                    //         );
+                                    //     },
+                                    // );
                                 }
                             }
                         }
@@ -1489,38 +1605,27 @@ fn build_gui(app: &Application) {
                     // unlike FileChooserDialog, 'native' creates a transient reference.
                     // It's good practice to drop references, but GTK handles the cleanup
                     // once it goes out of scope or the window closes.
-                }
-            ));
+                },
+            );
             // 3. Show the dialog
             native.show();
-        }
+        },
     )); //button-connect-clicked
 
-    about_btn.connect_clicked(clone!(
-        #[strong]
-        win,
-        move |_| {
-            let dialog = gtk4::AboutDialog::builder()
-                .transient_for(&win)
-                .modal(true)
-                .program_name("SiliconSneaker II")
-                .version("1.0.0")
-                .copyright("Copyright © 2025")
-                .comments("View your run files on the desktop!")
-                .authors(vec![
-                    "Craig S. Prevallet <penguintx@hotmail.com>".to_string(),
-                ])
-                .build();
-            dialog.present();
-        }
-    )); //button-connect-clicked
-
-    button_box.append(&btn);
-    button_box.append(&units_widget);
-    button_box.append(&about_btn);
-    outer_box.append(&button_box);
-    outer_box.append(&main_pane);
-    win.set_child(Some(&outer_box));
-    win.maximize();
-    win.present();
+    // let ui_state2 = Rc::clone(&ui_rc);
+    // ui.about_btn.connect_clicked(clone!(move |_| {
+    //     let ui = ui_state2.borrow_mut();
+    //     let dialog = gtk4::AboutDialog::builder()
+    //         .transient_for(&ui.win)
+    //         .modal(true)
+    //         .program_name("SiliconSneaker II")
+    //         .version("1.0.0")
+    //         .copyright("Copyright © 2025")
+    //         .comments("View your run files on the desktop!")
+    //         .authors(vec![
+    //             "Craig S. Prevallet <penguintx@hotmail.com>".to_string(),
+    //         ])
+    //         .build();
+    //     dialog.present();
+    // })); //button-connect-clicked
 } // build_gui
