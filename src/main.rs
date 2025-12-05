@@ -949,10 +949,16 @@ fn build_summary(data: &Vec<FitDataRecord>, units_widget: &DropDown, text_buffer
                         | "start_position_long"
                         | "end_position_lat"
                         | "end_position_long" => {
-                            let semi: i64 = fld.value().try_into().expect("conversion failed"); //semicircles
-                            let degrees = semi_to_degrees(semi as f32);
-                            let value_str = format!("{:<40}: {degrees:<6.3}°\n", fld.name(),);
-                            text_buffer.insert(&mut end, &value_str);
+                            let result: Result<i64, _> = fld.value().try_into();
+                            match result {
+                                Ok(semi) => {
+                                    let degrees = semi_to_degrees(semi as f32);
+                                    let value_str =
+                                        format!("{:<40}: {degrees:<6.3}°\n", fld.name(),);
+                                    text_buffer.insert(&mut end, &value_str);
+                                }
+                                Err(_) => {}
+                            }
                         }
 
                         "total_strides"
