@@ -834,69 +834,76 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     return symbol;
 }
 // Build the map.
-fn build_map(data: &Vec<FitDataRecord>) -> (SimpleMap, Option<MarkerLayer>) {
-    let map = SimpleMap::new();
-    let source = libshumate::MapSourceRegistry::with_defaults()
+fn build_map(data: &Vec<FitDataRecord>) -> (Option<SimpleMap>, Option<MarkerLayer>) {
+    if libshumate::MapSourceRegistry::with_defaults()
         .by_id("osm-mapnik")
-        .expect("Could not retrieve map source.");
-    map.set_map_source(Some(&source));
-    // Get values from fit file.
-    let units_widget = DropDown::builder().build(); // bogus value - no units required for position
-    let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
-    // Call the function to add the path layer
-    add_path_layer_to_map(&map, run_path.clone());
-    // add pins for the starting and stopping points of the run
-    let startstop_layer = add_marker_layer_to_map(&map);
-    let len = run_path.len();
-    if len > 0 {
-        let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
-        let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
-        let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
-        let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
-        let start_content = gtk4::Label::new(Some("🟢"));
-        let stop_content = gtk4::Label::new(Some("🔴"));
-        start_content.set_halign(gtk4::Align::Center);
-        start_content.set_valign(gtk4::Align::Baseline);
-        stop_content.set_halign(gtk4::Align::Center);
-        stop_content.set_valign(gtk4::Align::Baseline);
-        let start_widget = &start_content;
-        let stop_widget = &stop_content;
-        let start_marker = Marker::builder()
-            .latitude(start_lat_deg)
-            .longitude(start_lon_deg)
-            .child(&start_widget.clone())
-            // Set the visual content widget
-            .build();
-        let stop_marker = Marker::builder()
-            .latitude(stop_lat_deg)
-            .longitude(stop_lon_deg)
-            .child(&stop_widget.clone())
-            // Set the visual content widget
-            .build();
-        if startstop_layer.is_some() {
-            startstop_layer.as_ref().unwrap().add_marker(&start_marker);
-            startstop_layer.as_ref().unwrap().add_marker(&stop_marker);
+        .is_some()
+    {
+        let source = libshumate::MapSourceRegistry::with_defaults()
+            .by_id("osm-mapnik")
+            .unwrap();
+        let map = SimpleMap::new();
+        map.set_map_source(Some(&source));
+        // Get values from fit file.
+        let units_widget = DropDown::builder().build(); // bogus value - no units required for position
+        let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
+        // Call the function to add the path layer
+        add_path_layer_to_map(&map, run_path.clone());
+        // add pins for the starting and stopping points of the run
+        let startstop_layer = add_marker_layer_to_map(&map);
+        let len = run_path.len();
+        if len > 0 {
+            let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
+            let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
+            let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
+            let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
+            let start_content = gtk4::Label::new(Some("🟢"));
+            let stop_content = gtk4::Label::new(Some("🔴"));
+            start_content.set_halign(gtk4::Align::Center);
+            start_content.set_valign(gtk4::Align::Baseline);
+            stop_content.set_halign(gtk4::Align::Center);
+            stop_content.set_valign(gtk4::Align::Baseline);
+            let start_widget = &start_content;
+            let stop_widget = &stop_content;
+            let start_marker = Marker::builder()
+                .latitude(start_lat_deg)
+                .longitude(start_lon_deg)
+                .child(&start_widget.clone())
+                // Set the visual content widget
+                .build();
+            let stop_marker = Marker::builder()
+                .latitude(stop_lat_deg)
+                .longitude(stop_lon_deg)
+                .child(&stop_widget.clone())
+                // Set the visual content widget
+                .build();
+            if startstop_layer.is_some() {
+                startstop_layer.as_ref().unwrap().add_marker(&start_marker);
+                startstop_layer.as_ref().unwrap().add_marker(&stop_marker);
+            }
         }
+        let marker_layer = add_marker_layer_to_map(&map);
+        let viewport = map.viewport().expect("Couldn't get viewport.");
+        // You may want to set an initial center and zoom level.
+        let nec_lat = get_sess_record_field(data.clone(), "nec_lat");
+        let nec_long = get_sess_record_field(data.clone(), "nec_long");
+        let swc_lat = get_sess_record_field(data.clone(), "swc_lat");
+        let swc_long = get_sess_record_field(data.clone(), "swc_long");
+        if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
+            let center_lat =
+                (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
+            let center_long =
+                (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
+            // println!("{:?}", center_lat);
+            // println!("{:?}", center_long);
+            viewport.set_location(center_lat, center_long);
+        } else {
+            viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
+        }
+        viewport.set_zoom_level(14.0);
+        return (Some(map), marker_layer);
     }
-    let marker_layer = add_marker_layer_to_map(&map);
-    let viewport = map.viewport().expect("Couldn't get viewport.");
-    // You may want to set an initial center and zoom level.
-    let nec_lat = get_sess_record_field(data.clone(), "nec_lat");
-    let nec_long = get_sess_record_field(data.clone(), "nec_long");
-    let swc_lat = get_sess_record_field(data.clone(), "swc_lat");
-    let swc_long = get_sess_record_field(data.clone(), "swc_long");
-    if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
-        let center_lat = (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
-        let center_long =
-            (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
-        // println!("{:?}", center_lat);
-        // println!("{:?}", center_long);
-        viewport.set_location(center_lat, center_long);
-    } else {
-        viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
-    }
-    viewport.set_zoom_level(14.0);
-    return (map, marker_layer);
+    return (None, None); // Can't find source. Check internet access?
 }
 
 // Build the map.
@@ -1195,7 +1202,9 @@ fn parse_and_display_run(
     // 3. Connect embedded widgets to their parents.
     da_window.set_child(Some(&da));
     frame_right.set_child(Some(&da_window));
-    frame_left.set_child(Some(&shumate_map));
+    if shumate_map.is_some() {
+        frame_left.set_child(shumate_map.as_ref());
+    }
     y_zoom_scale.set_adjustment(&yzm);
     curr_pos_scale.set_adjustment(&curr_pos);
 
@@ -1276,7 +1285,9 @@ fn parse_and_display_run(
             if shumate_marker_layer.is_some() {
                 shumate_marker_layer.as_ref().unwrap().add_marker(&marker);
             }
-            shumate_map.queue_draw();
+            if shumate_map.is_some() {
+                shumate_map.as_ref().unwrap().queue_draw();
+            }
         },
     ));
 }
