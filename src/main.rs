@@ -1367,9 +1367,10 @@ fn build_gui(app: &Application) {
                                         let c_title = win.title().unwrap().to_string().to_owned();
                                         let mut pfx = c_title
                                             .chars()
-                                            .take_while(|&ch| ch != '-')
+                                            .take_while(|&ch| ch != ':')
                                             .collect::<String>();
-                                        pfx.push_str(" -");
+                                        pfx.push_str(":");
+                                        pfx.push_str(" ");
                                         pfx.push_str(&path_str);
                                         win.set_title(Some(&pfx.to_string()));
                                         file
