@@ -1235,11 +1235,7 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     ui.left_frame_pane
         .set_position((0.5 * ui.win.height() as f32) as i32);
 
-    // 5. Configure widgets not handled during instantiation.
-    ui.y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
-    ui.curr_pos_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
-
-    // 6. Establish call-back routines for widget event handling.
+    // 5. Establish call-back routines for widget event handling.
     // Redraw the drawing area when the zoom changes.
     ui.y_zoom_scale.adjustment().connect_value_changed(clone!(
         #[strong]
