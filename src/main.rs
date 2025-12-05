@@ -34,19 +34,18 @@ fn main() {
 }
 
 fn get_unit_system(units_widget: &DropDown) -> Units {
-    if units_widget.model() == None {
-        return Units::None;
-    }
-    let model = units_widget.model().unwrap();
-    if let Some(item_obj) = model.item(units_widget.selected()) {
-        if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
-            let unit_string = String::from(string_obj.string());
-            //println!("{:?}", unit_string);
-            if unit_string == "🇪🇺 Metric" {
-                return Units::Metric;
-            }
-            if unit_string == "🇺🇸 US" {
-                return Units::US;
+    if units_widget.model().is_some() {
+        let model = units_widget.model().unwrap();
+        if let Some(item_obj) = model.item(units_widget.selected()) {
+            if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
+                let unit_string = String::from(string_obj.string());
+                //println!("{:?}", unit_string);
+                if unit_string == "🇪🇺 Metric" {
+                    return Units::Metric;
+                }
+                if unit_string == "🇺🇸 US" {
+                    return Units::US;
+                }
             }
         }
     }
@@ -740,12 +739,15 @@ fn build_da(
     return (drawing_area, xzm, yzm, pos);
 }
 
-fn add_marker_layer_to_map(map: &SimpleMap) -> MarkerLayer {
-    let viewport = map.viewport().expect("No viewport.");
+// Add a marker layer to the map.
+fn add_marker_layer_to_map(map: &SimpleMap) -> Option<MarkerLayer> {
+    if map.viewport() == None {
+        return None;
+    }
+    let viewport = map.viewport().unwrap();
     let marker_layer = libshumate::MarkerLayer::new(&viewport);
-    // Add the layer to the map
     map.add_overlay_layer(&marker_layer);
-    return marker_layer.clone();
+    return Some(marker_layer.clone());
 }
 
 //Adds a PathLayer with a path of given coordinates to the map.
@@ -798,34 +800,34 @@ fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
 
 fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     //    let mut symbol = "🏃";
-    let mut symbol = concat!(r#"<span size="200%">"#, "🏃", "</span>#");
+    let mut symbol = concat!(r#"<span size="200%">"#, "🏃", "</span>");
     let (_year, month, day) = get_run_start_date(data);
     if month == 1 && day == 1 {
-        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>");
     }
     if month == 3 && day == 17 {
-        symbol = concat!(r#"<span size="200%">"#, "🍀", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🍀", "</span>");
     }
     if month == 7 && day == 4 {
-        symbol = concat!(r#"<span size="200%">"#, "🎆", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🎆", "</span>");
     }
     if month == 10 && day == 31 {
-        symbol = concat!(r#"<span size="200%">"#, "🎃", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🎃", "</span>");
     }
     if month == 12 && day == 24 {
-        symbol = concat!(r#"<span size="200%">"#, "🎅", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🎅", "</span>");
     }
     if month == 12 && day == 25 {
-        symbol = concat!(r#"<span size="200%">"#, "🎁", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🎁", "</span>");
     }
     if month == 12 && day == 31 {
-        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>#");
+        symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>");
     }
     let _ = "📍";
     return symbol;
 }
 // Build the map.
-fn build_map(data: &Vec<FitDataRecord>) -> (SimpleMap, MarkerLayer) {
+fn build_map(data: &Vec<FitDataRecord>) -> (SimpleMap, Option<MarkerLayer>) {
     let map = SimpleMap::new();
     let source = libshumate::MapSourceRegistry::with_defaults()
         .by_id("osm-mapnik")
@@ -858,14 +860,16 @@ fn build_map(data: &Vec<FitDataRecord>) -> (SimpleMap, MarkerLayer) {
             .child(&start_widget.clone())
             // Set the visual content widget
             .build();
-        startstop_layer.add_marker(&start_marker);
         let stop_marker = Marker::builder()
             .latitude(stop_lat_deg)
             .longitude(stop_lon_deg)
             .child(&stop_widget.clone())
             // Set the visual content widget
             .build();
-        startstop_layer.add_marker(&stop_marker);
+        if startstop_layer.is_some() {
+            startstop_layer.as_ref().unwrap().add_marker(&start_marker);
+            startstop_layer.as_ref().unwrap().add_marker(&stop_marker);
+        }
     }
     let marker_layer = add_marker_layer_to_map(&map);
     let viewport = map.viewport().expect("Couldn't get viewport.");
@@ -1238,7 +1242,9 @@ fn parse_and_display_run(
             // Update graphs.
             da.queue_draw();
             // Update map.
-            shumate_marker_layer.remove_all();
+            if shumate_marker_layer.is_some() {
+                shumate_marker_layer.as_ref().unwrap().remove_all();
+            }
             let units_widget = DropDown::builder().build(); // bogus value - no units required for position
             let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
             let idx = (curr_pos.value() * (run_path.len() as f64 - 1.0)).trunc() as usize;
@@ -1260,7 +1266,9 @@ fn parse_and_display_run(
                 .child(&widget.clone())
                 // Set the visual content widget
                 .build();
-            shumate_marker_layer.add_marker(&marker);
+            if shumate_marker_layer.is_some() {
+                shumate_marker_layer.as_ref().unwrap().add_marker(&marker);
+            }
             shumate_map.queue_draw();
         },
     ));
