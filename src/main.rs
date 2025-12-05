@@ -1196,112 +1196,58 @@ fn build_summary(data: &Vec<FitDataRecord>, units_widget: &DropDown, text_buffer
 
 // This is the main body of the program.  After reading the fit file,
 // create and display the rest of the UI.
-fn parse_and_display_run(
-    win: &ApplicationWindow,
-    main_pane: &gtk4::Paned,
-    data: &Vec<FitDataRecord>,
-    units_widget: &DropDown,
-) {
-    // 1. Instantiate the main UI widgets.
-    let text_view = TextView::builder().monospace(true).margin_start(10).build();
-    let frame_left = Frame::builder().build();
-    let frame_right = Frame::builder().build();
-    let left_frame_pane = gtk4::Paned::builder()
-        .orientation(Orientation::Vertical)
-        .build();
-    let right_frame_pane = gtk4::Paned::builder()
-        .orientation(Orientation::Horizontal)
-        .build();
-    let scrolled_window = ScrolledWindow::builder().child(&text_view).build();
-    let da_window = ScrolledWindow::builder()
-        .vexpand(true)
-        .hexpand(true)
-        .build();
-    let curr_pos_adj = Adjustment::builder()
-        .lower(0.0)
-        .upper(1.0)
-        .step_increment(0.01)
-        .page_increment(0.01)
-        .value(0.0)
-        .build();
-    let curr_pos_scale = Scale::builder()
-        .orientation(Orientation::Horizontal)
-        .adjustment(&curr_pos_adj)
-        .draw_value(false)
-        .vexpand(false)
-        .width_request(120)
-        .height_request(30)
-        .build();
-    let y_zoom_adj = Adjustment::builder()
-        .lower(0.5)
-        .upper(4.0)
-        .step_increment(0.1)
-        .page_increment(0.1)
-        .value(2.0)
-        .build();
-    let y_zoom_scale = Scale::builder()
-        .orientation(Orientation::Horizontal)
-        .adjustment(&y_zoom_adj)
-        .draw_value(false)
-        .vexpand(false)
-        .width_request(120)
-        .height_request(30)
-        .build();
-    let curr_pos_label = Label::new(Some("🏃‍➡️"));
-    let y_zoom_label = Label::new(Some("🔍"));
-    let controls_box = gtk4::Box::new(Orientation::Vertical, 10);
-
-    // 2. Instantiate embedded widgets based on parsed fit data.
+fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
+    // 1. Instantiate embedded widgets based on parsed fit data.
     let (shumate_map, shumate_marker_layer) = build_map(&data);
-    let (da, _, yzm, curr_pos) = build_da(&data, &units_widget);
-    let text_buffer = text_view.buffer();
-    build_summary(&data, &units_widget, &text_buffer);
+    let (da, _, yzm, curr_pos) = build_da(&data, &ui.units_widget);
+    build_summary(&data, &ui.units_widget, &ui.text_buffer);
 
-    // 3. Connect embedded widgets to their parents.
-    da_window.set_child(Some(&da));
-    frame_right.set_child(Some(&da_window));
+    // 2. Connect embedded widgets to their parents.
+    ui.da_window.set_child(Some(&da));
+    ui.frame_right.set_child(Some(&ui.da_window));
     if shumate_map.is_some() {
-        frame_left.set_child(shumate_map.as_ref());
+        ui.frame_left.set_child(shumate_map.as_ref());
     }
-    y_zoom_scale.set_adjustment(&yzm);
-    curr_pos_scale.set_adjustment(&curr_pos);
+    ui.y_zoom_scale.set_adjustment(&yzm);
+    ui.curr_pos_scale.set_adjustment(&curr_pos);
 
-    // 4. Configure the widget layout.
-    left_frame_pane.set_start_child(Some(&frame_left));
-    left_frame_pane.set_end_child(Some(&scrolled_window));
-    right_frame_pane.set_start_child(Some(&frame_right));
-    controls_box.append(&y_zoom_label);
-    controls_box.append(&y_zoom_scale);
-    controls_box.append(&curr_pos_label);
-    controls_box.append(&curr_pos_scale);
-    right_frame_pane.set_end_child(Some(&controls_box));
+    // 3. Configure the widget layout.
+    ui.left_frame_pane.set_start_child(Some(&ui.frame_left));
+    ui.left_frame_pane.set_end_child(Some(&ui.scrolled_window));
+    ui.right_frame_pane.set_start_child(Some(&ui.frame_right));
+    ui.controls_box.append(&ui.y_zoom_label);
+    ui.controls_box.append(&ui.y_zoom_scale);
+    ui.controls_box.append(&ui.curr_pos_label);
+    ui.controls_box.append(&ui.curr_pos_scale);
+    ui.right_frame_pane.set_end_child(Some(&ui.controls_box));
     // Main box contains all of the above plus the graphs.
-    main_pane.set_start_child(Some(&left_frame_pane));
-    main_pane.set_end_child(Some(&right_frame_pane));
+    ui.main_pane.set_start_child(Some(&ui.left_frame_pane));
+    ui.main_pane.set_end_child(Some(&ui.right_frame_pane));
 
-    // 5. Size the widgets.
-    scrolled_window.set_size_request(500, 300);
+    // 4. Size the widgets.
+    ui.scrolled_window.set_size_request(500, 300);
     // Set where the splits start (in pixels from the left hand side.)
-    let main_split = (0.3 * win.width() as f32).trunc() as i32;
-    let right_frame_split = (0.7 * (win.width() as f32 - main_split as f32)).trunc() as i32;
-    main_pane.set_position(main_split);
-    right_frame_pane.set_position(right_frame_split);
+    let main_split = (0.3 * ui.win.width() as f32).trunc() as i32;
+    let right_frame_split = (0.7 * (ui.win.width() as f32 - main_split as f32)).trunc() as i32;
+    ui.main_pane.set_position(main_split);
+    ui.right_frame_pane.set_position(right_frame_split);
     // Set where the splits start (in pixels from the top.)
-    left_frame_pane.set_position((0.5 * win.height() as f32) as i32);
+    ui.left_frame_pane
+        .set_position((0.5 * ui.win.height() as f32) as i32);
 
-    // 6. Configure widgets not handled during instantiation.
-    y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
-    curr_pos_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
+    // 5. Configure widgets not handled during instantiation.
+    ui.y_zoom_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
+    ui.curr_pos_scale.set_draw_value(false); // Ensure the value is not displayed on the scale itself
 
-    // 7. Establish call-back routines for widget event handling.
+    // 6. Establish call-back routines for widget event handling.
     // Redraw the drawing area when the zoom changes.
-    y_zoom_scale.adjustment().connect_value_changed(clone!(
+    ui.y_zoom_scale.adjustment().connect_value_changed(clone!(
         #[strong]
         da,
         move |_| da.queue_draw()
     ));
     // Redraw the drawing area and map when the current postion changes.
-    curr_pos_scale.adjustment().connect_value_changed(clone!(
+    ui.curr_pos_scale.adjustment().connect_value_changed(clone!(
         #[strong]
         da,
         #[strong]
@@ -1356,6 +1302,7 @@ struct UserInterface {
     main_pane: gtk4::Paned,
     btn: Button,
     text_view: TextView,
+    text_buffer: TextBuffer,
     frame_left: Frame,
     frame_right: Frame,
     left_frame_pane: gtk4::Paned,
@@ -1407,6 +1354,7 @@ fn instantiate_ui(app: &Application) -> UserInterface {
             .build(),
 
         text_view: TextView::builder().monospace(true).margin_start(10).build(),
+        text_buffer: TextBuffer::builder().build(),
         frame_left: Frame::builder().build(),
         frame_right: Frame::builder().build(),
         left_frame_pane: gtk4::Paned::builder()
@@ -1475,6 +1423,8 @@ fn instantiate_ui(app: &Application) -> UserInterface {
     ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
+    ui.text_view.set_buffer(Some(&ui.text_buffer));
+    ui.scrolled_window.set_child(Some(&ui.text_view));
 
     // Button with icon and label.
     let button_content = gtk4::Box::new(Orientation::Horizontal, 6);
@@ -1492,15 +1442,15 @@ fn instantiate_ui(app: &Application) -> UserInterface {
     ui.button_box.append(&ui.about_btn);
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
-    //    ui.win.set_child(Some(&ui.outer_box));
-    ui.win.maximize();
-    ui.win.present();
     return ui;
 }
 
 fn build_gui(app: &Application) {
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
+    ui_original.win.maximize();
+    ui_original.win.present();
+
     // // Create a new reference count for the user_interface structure.
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
@@ -1557,25 +1507,15 @@ fn build_gui(app: &Application) {
                                     },
                                 };
                                 if let Ok(data) = fitparser::from_reader(&mut file) {
-                                    parse_and_display_run(
-                                        &ui2.win,
-                                        &ui2.main_pane,
-                                        &data,
-                                        &ui2.units_widget,
-                                    );
+                                    display_run(&ui2, &data);
                                     // Hook-up the units_widget change handler.
                                     let data_clone = data.clone();
                                     // let ui3 = Rc::clone(&ui_rc);
                                     ui2.units_widget.connect_selected_notify(clone!(
                                         #[strong]
                                         ui2,
-                                        move |me| {
-                                            parse_and_display_run(
-                                                &ui2.win,
-                                                &ui2.main_pane,
-                                                &data_clone,
-                                                &me,
-                                            );
+                                        move |_| {
+                                            display_run(&ui2, &data_clone);
                                         },
                                     ));
                                 }
