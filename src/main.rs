@@ -670,8 +670,8 @@ fn draw_graphs(
 }
 
 // Build drawing area.
-fn build_da(data: &Vec<FitDataRecord>, ui: &UserInterface) -> DrawingArea {
-    let drawing_area: DrawingArea = DrawingArea::builder().build();
+fn build_graphs(data: &Vec<FitDataRecord>, ui: &UserInterface) {
+    //    let drawing_area: DrawingArea = DrawingArea::builder().build();
     // Need to clone to use inside the closure.
     let d = data.clone();
     let units_widget = ui.units_widget.clone();
@@ -680,19 +680,19 @@ fn build_da(data: &Vec<FitDataRecord>, ui: &UserInterface) -> DrawingArea {
     let curr_pos = ui.curr_pos_adj.clone();
     curr_pos.set_value(0.001);
     let units_clone = units_widget.clone();
-    drawing_area.set_draw_func(move |_drawing_area, cr, width, height| {
-        draw_graphs(
-            &d,
-            &units_clone,
-            &x_zoom,
-            &y_zoom,
-            &curr_pos,
-            cr,
-            width as f64,
-            height as f64,
-        );
-    });
-    return drawing_area;
+    ui.da
+        .set_draw_func(move |_drawing_area, cr, width, height| {
+            draw_graphs(
+                &d,
+                &units_clone,
+                &x_zoom,
+                &y_zoom,
+                &curr_pos,
+                cr,
+                width as f64,
+                height as f64,
+            );
+        });
 }
 
 // Add a marker layer to the map.
@@ -1149,15 +1149,23 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     };
 }
 
+fn update_map_graph_and_summary_widgets(
+    ui: &UserInterface,
+    data: &Vec<FitDataRecord>,
+) -> (Option<SimpleMap>, Option<MarkerLayer>) {
+    let (shumate_map, shumate_marker_layer) = build_map(&data);
+    build_graphs(&data, &ui);
+    build_summary(&data, &ui);
+    return (shumate_map, shumate_marker_layer);
+}
+
 // After reading the fit file, display the rest of the UI.
 fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     // 1. Instantiate embedded widgets based on parsed fit data.
-    let (shumate_map, shumate_marker_layer) = build_map(&data);
-    let da = build_da(&data, &ui);
-    build_summary(&data, &ui);
+    let (shumate_map, shumate_marker_layer) = update_map_graph_and_summary_widgets(&ui, &data);
 
     // 2. Connect embedded widgets to their parents.
-    ui.da_window.set_child(Some(&da));
+    ui.da_window.set_child(Some(&ui.da));
     ui.frame_right.set_child(Some(&ui.da_window));
     if shumate_map.is_some() {
         ui.frame_left.set_child(shumate_map.as_ref());
@@ -1189,16 +1197,15 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
 
     // 5. Establish call-back routines for widget event handling.
     // Redraw the drawing area when the zoom changes.
-    ui.y_zoom_scale.adjustment().connect_value_changed(clone!(
-        #[strong]
-        da,
-        move |_| da.queue_draw()
-    ));
+    let da = ui.da.clone();
+    ui.y_zoom_scale
+        .adjustment()
+        .connect_value_changed(move |_| da.queue_draw());
+
     let curr_pos = ui.curr_pos_adj.clone();
-    // Redraw the drawing area and map when the current postion changes.
+    let da2 = ui.da.clone();
+    //    Redraw the drawing area and map when the current postion changes.
     ui.curr_pos_scale.adjustment().connect_value_changed(clone!(
-        #[strong]
-        da,
         #[strong]
         data,
         #[strong]
@@ -1209,7 +1216,7 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
         curr_pos,
         move |_| {
             // Update graphs.
-            da.queue_draw();
+            da2.queue_draw();
             // Update map.
             if shumate_marker_layer.is_some() {
                 shumate_marker_layer.as_ref().unwrap().remove_all();
@@ -1270,6 +1277,7 @@ struct UserInterface {
     units_widget: DropDown,
     about_label: String,
     about_btn: Button,
+    da: DrawingArea,
 }
 
 fn instantiate_ui(app: &Application) -> UserInterface {
@@ -1373,6 +1381,7 @@ fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(50)
             .build(),
+        da: DrawingArea::builder().build(),
     };
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
     ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
@@ -1470,7 +1479,12 @@ fn build_gui(app: &Application) {
                                         #[strong]
                                         ui2,
                                         move |_| {
-                                            display_run(&ui2, &data_clone);
+                                            let (_shumate_map, _shumate_marker_layer) =
+                                                update_map_graph_and_summary_widgets(
+                                                    &ui2,
+                                                    &data_clone,
+                                                );
+                                            // display_run(&ui2, &data_clone);
                                         },
                                     ));
                                 }
