@@ -803,13 +803,10 @@ fn build_map(
         let source = libshumate::MapSourceRegistry::with_defaults()
             .by_id("osm-mapnik")
             .unwrap();
-        //let map = SimpleMap::new();
         map.set_map_source(Some(&source));
         // Get values from fit file.
         let units_widget = DropDown::builder().build(); // bogus value - no units required for position
         let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
-        // add the path layer
-        // let path_layer = add_path_layer_to_map(&ui.map);
         path_layer.remove_all();
         for (lat, lon) in run_path.clone() {
             let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
