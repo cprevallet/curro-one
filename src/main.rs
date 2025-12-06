@@ -845,6 +845,7 @@ fn build_map(data: &Vec<FitDataRecord>) -> (Option<SimpleMap>, Option<MarkerLaye
                 startstop_layer.as_ref().unwrap().add_marker(&stop_marker);
             }
         }
+        // Add a layer for indication of current position (aka the runner).
         let marker_layer = add_marker_layer_to_map(&map);
         marker_layer.as_ref().unwrap().remove_all();
         // You may want to set an initial center and zoom level.
