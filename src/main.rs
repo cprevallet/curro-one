@@ -804,6 +804,7 @@ fn build_map(data: &Vec<FitDataRecord>) -> (Option<SimpleMap>, Option<MarkerLaye
         let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
         // add the path layer
         let path_layer = add_path_layer_to_map(&map);
+        path_layer.as_ref().unwrap().remove_all();
         if path_layer.is_some() {
             for (lat, lon) in run_path.clone() {
                 let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
@@ -812,6 +813,7 @@ fn build_map(data: &Vec<FitDataRecord>) -> (Option<SimpleMap>, Option<MarkerLaye
         }
         // add pins for the starting and stopping points of the run
         let startstop_layer = add_marker_layer_to_map(&map);
+        startstop_layer.as_ref().unwrap().remove_all();
         let len = run_path.len();
         if len > 0 {
             let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
@@ -844,6 +846,7 @@ fn build_map(data: &Vec<FitDataRecord>) -> (Option<SimpleMap>, Option<MarkerLaye
             }
         }
         let marker_layer = add_marker_layer_to_map(&map);
+        marker_layer.as_ref().unwrap().remove_all();
         // You may want to set an initial center and zoom level.
         if map.viewport().is_some() {
             let viewport = map.viewport().unwrap();
