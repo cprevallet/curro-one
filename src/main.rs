@@ -1210,8 +1210,8 @@ fn update_map_graph_and_summary_widgets(
 // After reading the fit file, display the rest of the UI.
 fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     // 1. Instantiate embedded widgets based on parsed fit data.
-
     let shumate_marker_layer = update_map_graph_and_summary_widgets(&ui, &data);
+
     // 2. Connect embedded widgets to their parents.
     ui.da_window.set_child(Some(&ui.da));
     ui.frame_right.set_child(Some(&ui.da_window));
@@ -1242,16 +1242,15 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
         .set_position((0.5 * ui.win.height() as f32) as i32);
 
     // 5. Establish call-back routines for widget event handling.
-    // Redraw the drawing area when the zoom changes.
+    // a. redraw the drawing area when the zoom changes.
     let da = ui.da.clone();
     ui.y_zoom_scale
         .adjustment()
         .connect_value_changed(move |_| da.queue_draw());
-
     let curr_pos = ui.curr_pos_adj.clone();
     let da2 = ui.da.clone();
     let map = ui.map.clone();
-    //    Redraw the drawing area and map when the current postion changes.
+    // b. redraw the drawing area and map when the current position changes.
     ui.curr_pos_scale.adjustment().connect_value_changed(clone!(
         #[strong]
         data,
@@ -1546,13 +1545,11 @@ fn build_gui(app: &Application) {
                                     display_run(&ui2, &data);
                                     // Hook-up the units_widget change handler.
                                     let data_clone = data.clone();
-                                    // let ui3 = Rc::clone(&ui_rc);
                                     ui2.units_widget.connect_selected_notify(clone!(
                                         #[strong]
                                         ui2,
                                         move |_| {
                                             update_map_graph_and_summary_widgets(&ui2, &data_clone);
-                                            // display_run(&ui2, &data_clone);
                                         },
                                     ));
                                 }
