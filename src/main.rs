@@ -1156,10 +1156,6 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     ui.left_frame_pane.set_start_child(Some(&ui.frame_left));
     ui.left_frame_pane.set_end_child(Some(&ui.scrolled_window));
     ui.right_frame_pane.set_start_child(Some(&ui.frame_right));
-    ui.controls_box.append(&ui.y_zoom_label);
-    ui.controls_box.append(&ui.y_zoom_scale);
-    ui.controls_box.append(&ui.curr_pos_label);
-    ui.controls_box.append(&ui.curr_pos_scale);
     ui.right_frame_pane.set_end_child(Some(&ui.controls_box));
     // Main box contains all of the above plus the graphs.
     ui.main_pane.set_start_child(Some(&ui.left_frame_pane));
@@ -1339,6 +1335,10 @@ fn instantiate_ui(app: &Application) -> UserInterface {
     ui.button_box.append(&ui.about_btn);
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
+    ui.controls_box.append(&ui.y_zoom_label);
+    ui.controls_box.append(&ui.y_zoom_scale);
+    ui.controls_box.append(&ui.curr_pos_label);
+    ui.controls_box.append(&ui.curr_pos_scale);
     ui.path_layer = Some(add_path_layer_to_map(&ui.map).unwrap());
     ui.startstop_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
     ui.marker_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
