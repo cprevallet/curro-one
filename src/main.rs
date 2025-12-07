@@ -1210,7 +1210,7 @@ fn update_map_graph_and_summary_widgets(
 // After reading the fit file, display the rest of the UI.
 fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     // 1. Instantiate embedded widgets based on parsed fit data.
-    let shumate_marker_layer = update_map_graph_and_summary_widgets(&ui, &data);
+    let _shumate_marker_layer = update_map_graph_and_summary_widgets(&ui, &data);
 
     // 2. Connect embedded widgets to their parents.
     ui.da_window.set_child(Some(&ui.da));
@@ -1247,26 +1247,6 @@ fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     ui.y_zoom_scale
         .adjustment()
         .connect_value_changed(move |_| da.queue_draw());
-    let curr_pos = ui.curr_pos_adj.clone();
-    let da2 = ui.da.clone();
-    let map = ui.map.clone();
-    // b. redraw the drawing area and map when the current position changes.
-    ui.curr_pos_scale.adjustment().connect_value_changed(clone!(
-        #[strong]
-        data,
-        #[strong]
-        shumate_marker_layer,
-        #[strong]
-        curr_pos,
-        move |_| {
-            // Update graphs.
-            da2.queue_draw();
-            // Update marker.
-            update_marker_layer(&data, shumate_marker_layer.as_ref().unwrap(), &curr_pos);
-            // Update map.
-            map.queue_draw();
-        },
-    ));
 }
 struct UserInterface {
     win: ApplicationWindow,
@@ -1552,6 +1532,34 @@ fn build_gui(app: &Application) {
                                             update_map_graph_and_summary_widgets(&ui2, &data_clone);
                                         },
                                     ));
+
+                                    // redraw the drawing area and map when the current position changes.
+                                    let curr_pos = ui2.curr_pos_adj.clone();
+                                    let da2 = ui2.da.clone();
+                                    let map = ui2.map.clone();
+                                    let marker_layer = ui2.marker_layer.clone();
+                                    ui2.curr_pos_scale
+                                        .adjustment()
+                                        .connect_value_changed(clone!(
+                                            #[strong]
+                                            data,
+                                            #[strong]
+                                            marker_layer,
+                                            #[strong]
+                                            curr_pos,
+                                            move |_| {
+                                                // Update graphs.
+                                                da2.queue_draw();
+                                                // Update marker.
+                                                update_marker_layer(
+                                                    &data,
+                                                    marker_layer.as_ref().unwrap(),
+                                                    &curr_pos,
+                                                );
+                                                // Update map.
+                                                map.queue_draw();
+                                            },
+                                        ));
                                 }
                             }
                         }
