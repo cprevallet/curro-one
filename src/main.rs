@@ -152,9 +152,9 @@ fn get_sess_record_field(data: Vec<FitDataRecord>, field_name: &str) -> f64 {
 }
 
 // Return a vector of values of "field_name".
-fn get_msg_record_field_as_vec(data: Vec<FitDataRecord>, field_name: &str) -> Vec<f64> {
+fn get_msg_record_field_as_vec(data: &Vec<FitDataRecord>, field_name: &str) -> Vec<f64> {
     let mut field_vals: Vec<f64> = Vec::new();
-    for item in &data {
+    for item in data {
         match item.kind() {
             // Individual msgnum::records
             MesgNum::Record => {
@@ -318,8 +318,8 @@ fn get_xy(
     // Get the enumerated value for the unit system the user selected.
     let user_unit = get_unit_system(units_widget);
     // Parameter can be distance, heart_rate, enhanced_speed, enhanced_altitude.
-    let x: Vec<f64> = get_msg_record_field_as_vec(data.clone(), x_field_name);
-    let y: Vec<f64> = get_msg_record_field_as_vec(data.clone(), y_field_name);
+    let x: Vec<f64> = get_msg_record_field_as_vec(&data, x_field_name);
+    let y: Vec<f64> = get_msg_record_field_as_vec(&data, y_field_name);
     //  Convert values to 32 bit and create a tuple.
     // Occasionally we see off by one errors in the data.
     // If true, Chop the last one. Must be careful comparing usize values.
