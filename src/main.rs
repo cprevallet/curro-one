@@ -53,27 +53,14 @@ fn get_unit_system(units_widget: &DropDown) -> Units {
     return Units::None;
 }
 
-// Calculate the vector average.
-fn mean(data: &Vec<f32>) -> f32 {
-    let count = data.len();
-    // Handle empty data case to prevent division by zero
-    if count == 0 {
-        return 0.0;
-    }
-    let sum: f32 = data.iter().sum();
-    let mean = sum / (count as f32);
-    return mean;
-}
-
-// Calculate the vector standard deviation.
-fn standard_deviation(data: &Vec<f32>) -> f32 {
+// Calculate the vector mean and standard deviation.
+fn mean_and_standard_deviation(data: &Vec<f32>) -> (Option<f32>, Option<f32>) {
     let count = data.len();
     // Handle empty data case to prevent division by zero.
     if count == 0 {
-        return 0.0;
+        return (None, None);
     }
     // Calculate the mean (average).
-    // .sum() requires an explicit type annotation if not inferred
     let sum: f32 = data.iter().sum();
     let mean = sum / (count as f32);
     // Calculate the variance.
@@ -89,7 +76,7 @@ fn standard_deviation(data: &Vec<f32>) -> f32 {
         .sum();
     let variance = squared_differences_sum / (count as f32);
     // Standard deviation is the square root of the variance.
-    return variance.sqrt();
+    return (Some(mean), Some(variance.sqrt()));
 }
 
 // Find the largest non-NaN in vector, or NaN otherwise:
@@ -120,16 +107,15 @@ fn set_plot_range(
     let (x, y): (Vec<_>, Vec<_>) = data.into_iter().map(|(a, b)| (a, b)).unzip();
     // Find the range of the chart, statistics says 95% should lie between +/3 sigma
     // for a normal distribution.  Let's go with that for the range.
-    let _mean_x = mean(&x);
-    let mean_y = mean(&y);
-    let _sigma_x = standard_deviation(&x);
-    let sigma_y = standard_deviation(&y);
     // Disallow zero, negative values of zoom.
     let xrange: std::ops::Range<f32> = min_vec(&x)..1.0 / zoom_x * max_vec(&x);
-    let yrange: std::ops::Range<f32> =
-        mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
-    mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
-    return (xrange, yrange);
+    if let (Some(mean_y), Some(sigma_y)) = mean_and_standard_deviation(&y) {
+        let yrange: std::ops::Range<f32> =
+            mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
+        return (xrange, yrange);
+    } else {
+        panic!("Could not determine ranges. Reason unknown.")
+    }
 }
 
 // Return a session values of "field_name".
