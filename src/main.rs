@@ -35,6 +35,7 @@ fn main() {
     app.run();
 }
 
+// Return a unit enumeration from a units widget.
 fn get_unit_system(units_widget: &DropDown) -> Units {
     if units_widget.model().is_some() {
         let model = units_widget.model().unwrap();
@@ -79,13 +80,13 @@ fn mean_and_standard_deviation(data: &Vec<f32>) -> (Option<f32>, Option<f32>) {
     return (Some(mean), Some(variance.sqrt()));
 }
 
-// Find the largest non-NaN in vector, or NaN otherwise:
+// Find the largest non-NaN in vector, or NaN otherwise.
 fn max_vec(vector: &Vec<f32>) -> f32 {
     let v = vector.iter().copied().fold(0. / 0., f32::max);
     return v;
 }
 
-// Find the largest non-NaN in vector, or NaN otherwise:
+// Find the largest non-NaN in vector, or NaN otherwise.
 fn min_vec(vector: &Vec<f32>) -> f32 {
     let v = vector.iter().copied().fold(0. / 0., f32::min);
     return v;
@@ -158,7 +159,7 @@ fn get_msg_record_field_as_vec(data: &Vec<FitDataRecord>, field_name: &str) -> V
     return field_vals;
 }
 
-// Helper to convert various numeric Value variants to f64
+// Convert various numeric Value variants to f64.
 fn extract_f64(value: &Value) -> Option<f64> {
     match value {
         Value::Float64(v) => Some(*v),
@@ -205,7 +206,7 @@ fn get_time_in_zone_field(data: &Vec<FitDataRecord>) -> (Option<Vec<f64>>, Optio
     return result;
 }
 
-// Convert speed (m/s) to pace(min/mile, min/km)
+// Convert speed (m/s) to pace(min/mile, min/km).
 fn cvt_pace(speed: f32, units: &Units) -> f32 {
     match units {
         Units::US => {
@@ -316,7 +317,7 @@ fn get_xy(
     if x.len() > y.len() && (x.len() != 0) && (y.len() != 0) {
         data_range = 0..y.len() - 1;
     }
-    // Doing this  in a single pass is less expensive.
+    // Doing this in a single pass is less expensive.
     if (x.len() != 0) && (y.len() != 0) {
         for index in data_range.clone() {
             match x_field_name {
@@ -637,7 +638,7 @@ fn add_path_layer_to_map(map: &SimpleMap) -> Option<PathLayer> {
     return None;
 }
 
-// Helper function to return the date a run started on.
+// Return the date a run started on.
 fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
     let mut month = 0;
     let mut day = 0;
@@ -669,6 +670,7 @@ fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
     return (year, month, day);
 }
 
+// Return a (date dependent) unicode symbol.
 fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     //    let mut symbol = "🏃";
     let mut symbol = concat!(r#"<span size="200%">"#, "🏃", "</span>");
@@ -697,6 +699,7 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     let _ = "📍";
     return symbol;
 }
+
 // Move the marker based on the current position.
 fn update_marker_layer(data: &Vec<FitDataRecord>, layer: &MarkerLayer, curr_pos: &Adjustment) {
     layer.remove_all();
@@ -723,6 +726,7 @@ fn update_marker_layer(data: &Vec<FitDataRecord>, layer: &MarkerLayer, curr_pos:
         .build();
     layer.add_marker(&marker);
 }
+
 // Build the map.
 fn build_map(
     data: &Vec<FitDataRecord>,
@@ -808,7 +812,7 @@ fn build_map(
     return None; // Can't find map source. Check internet access?
 }
 
-// Given a field and units - convert the value to user-defined units and return a formatted string.
+// Convert a value to user-defined units and return a formatted string when supplied a field and units.
 fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<String> {
     match fld.name() {
         "start_position_lat" | "start_position_long" | "end_position_lat" | "end_position_long" => {
@@ -984,7 +988,8 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
         _ => return None, // matches other patterns
     }
 }
-// Build the map.
+
+// Build a summary.
 fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     // Get the enumerated value for the unit system the user selected.
     let user_unit = get_unit_system(&ui.units_widget);
@@ -1060,6 +1065,7 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     };
 }
 
+// Update the views when supplied with data.
 fn update_map_graph_and_summary_widgets(
     ui: &UserInterface,
     data: &Vec<FitDataRecord>,
@@ -1081,7 +1087,7 @@ fn update_map_graph_and_summary_widgets(
     return shumate_marker_layer;
 }
 
-// After reading the fit file, display the rest of the UI.
+// After reading the fit file, display the additional views of the UI.
 fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     // 1. Instantiate embedded widgets based on parsed fit data.
     let _shumate_marker_layer = update_map_graph_and_summary_widgets(&ui, &data);
@@ -1283,7 +1289,7 @@ fn instantiate_ui(app: &Application) -> UserInterface {
     ui.marker_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
     return ui;
 }
-/// Creates and presents a modal MessageDialog.
+// Create and present a modal MessageDialog when supplied a text string.
 fn show_error_dialog<W: IsA<gtk4::Window>>(parent: &W, text_str: String) {
     // Create the MessageDialog
     let dialog = MessageDialog::builder()
@@ -1303,17 +1309,17 @@ fn show_error_dialog<W: IsA<gtk4::Window>>(parent: &W, text_str: String) {
         //     "The selected FIT file could not be parsed due to an unexpected format or corruption.",
         // ))
         .build();
-
     // Connect to the response signal to handle button clicks (e.g., when "OK" is pressed)
     dialog.connect_response(|dialog, _response| {
         // ResponseType::Ok is returned when the "OK" button (from ButtonsType::Ok) is clicked.
         // Destroy the dialog when a response is received
         dialog.close();
     });
-
-    // Display the dialog
+    // Display the dialog.
     dialog.present();
 }
+
+// Instantiate the user-interface views and handle callbacks.
 fn build_gui(app: &Application) {
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
