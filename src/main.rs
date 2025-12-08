@@ -93,13 +93,13 @@ fn standard_deviation(data: &Vec<f32>) -> f32 {
 }
 
 // Find the largest non-NaN in vector, or NaN otherwise:
-fn max_vec(vector: Vec<f32>) -> f32 {
+fn max_vec(vector: &Vec<f32>) -> f32 {
     let v = vector.iter().copied().fold(0. / 0., f32::max);
     return v;
 }
 
 // Find the largest non-NaN in vector, or NaN otherwise:
-fn min_vec(vector: Vec<f32>) -> f32 {
+fn min_vec(vector: &Vec<f32>) -> f32 {
     let v = vector.iter().copied().fold(0. / 0., f32::min);
     return v;
 }
@@ -125,7 +125,7 @@ fn set_plot_range(
     let _sigma_x = standard_deviation(&x);
     let sigma_y = standard_deviation(&y);
     // Disallow zero, negative values of zoom.
-    let xrange: std::ops::Range<f32> = min_vec(x.clone())..1.0 / zoom_x * max_vec(x.clone());
+    let xrange: std::ops::Range<f32> = min_vec(&x)..1.0 / zoom_x * max_vec(&x);
     let yrange: std::ops::Range<f32> =
         mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
     mean_y - 2.0 / zoom_y * sigma_y..mean_y + 2.0 / zoom_y * sigma_y;
