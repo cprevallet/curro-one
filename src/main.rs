@@ -641,8 +641,8 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
 }
 
 // Move the marker based on the current position.
-fn update_marker_layer(data: &Vec<FitDataRecord>, layer: &MarkerLayer, curr_pos: &Adjustment) {
-    layer.remove_all();
+fn update_marker_layer(data: &Vec<FitDataRecord>, ui: &UserInterface, curr_pos: &Adjustment) {
+    ui.marker_layer.as_ref().unwrap().remove_all();
     let units_widget = DropDown::builder().build(); // bogus value - no units required for position
     let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
     let idx = (curr_pos.value() * (run_path.len() as f64 - 1.0)).trunc() as usize;
@@ -664,7 +664,7 @@ fn update_marker_layer(data: &Vec<FitDataRecord>, layer: &MarkerLayer, curr_pos:
         .child(&widget.clone())
         // Set the visual content widget
         .build();
-    layer.add_marker(&marker);
+    ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
 
 // Build the map.
@@ -1518,25 +1518,20 @@ fn build_gui(app: &Application) {
                                     let curr_pos = ui2.curr_pos_adj.clone();
                                     let da2 = ui2.da.clone();
                                     let map = ui2.map.clone();
-                                    let marker_layer = ui2.marker_layer.clone();
                                     ui2.curr_pos_scale
                                         .adjustment()
                                         .connect_value_changed(clone!(
                                             #[strong]
                                             data,
                                             #[strong]
-                                            marker_layer,
+                                            ui2,
                                             #[strong]
                                             curr_pos,
                                             move |_| {
                                                 // Update graphs.
                                                 da2.queue_draw();
                                                 // Update marker.
-                                                update_marker_layer(
-                                                    &data,
-                                                    marker_layer.as_ref().unwrap(),
-                                                    &curr_pos,
-                                                );
+                                                update_marker_layer(&data, &ui2, &curr_pos);
                                                 // Update map.
                                                 map.queue_draw();
                                             },
