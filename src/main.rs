@@ -47,6 +47,10 @@ struct GraphCache {
     distance_temperature: GraphAttributes,
 }
 
+struct MapCache {
+    run_path: Vec<(f32, f32)>,
+}
+
 // Program entry point.
 fn main() {
     let app = Application::builder().build();
@@ -658,13 +662,18 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     return symbol;
 }
 // Move the marker based on the current position.
-fn update_marker_layer(data: &Vec<FitDataRecord>, ui: &UserInterface, curr_pos: &Adjustment) {
+fn update_marker_layer(
+    data: &Vec<FitDataRecord>,
+    ui: &UserInterface,
+    curr_pos: &Adjustment,
+    mc: &MapCache,
+) {
     ui.marker_layer.as_ref().unwrap().remove_all();
     let units_widget = DropDown::builder().build(); // bogus value - no units required for position
-    let run_path = get_xy(&data, &units_widget, "position_lat", "position_long");
+    let run_path = &mc.run_path;
     let idx = (curr_pos.value() * (run_path.len() as f64 - 1.0)).trunc() as usize;
-    let curr_lat = run_path.clone()[idx].0;
-    let curr_lon = run_path.clone()[idx].1;
+    let curr_lat = run_path[idx].0;
+    let curr_lon = run_path[idx].1;
     let lat_deg = semi_to_degrees(curr_lat);
     let lon_deg = semi_to_degrees(curr_lon);
     let marker_text = Some(get_symbol(&data));
@@ -1418,9 +1427,6 @@ fn show_error_dialog<W: IsA<gtk4::Window>>(parent: &W, text_str: String) {
     // Display the dialog.
     dialog.present();
 }
-struct MapCache {
-    run_path: Vec<(f32, f32)>,
-}
 // Instantiate a means to only capture the data in run_path a *SINGLE* time.
 fn instantiate_map_cache(d: &Vec<FitDataRecord>) -> MapCache {
     let units_widget = DropDown::builder().build(); // bogus value - no units required for position
@@ -1561,7 +1567,12 @@ fn build_gui(app: &Application) {
                                                 // Update graphs.
                                                 da2.queue_draw();
                                                 // Update marker.
-                                                update_marker_layer(&data, &ui2, &curr_pos);
+                                                update_marker_layer(
+                                                    &data,
+                                                    &ui2,
+                                                    &curr_pos,
+                                                    &mc_rc_for_marker,
+                                                );
                                                 // Update map.
                                                 map.queue_draw();
                                             },
