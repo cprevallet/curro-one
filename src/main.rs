@@ -669,7 +669,6 @@ fn update_marker_layer(
     mc: &MapCache,
 ) {
     ui.marker_layer.as_ref().unwrap().remove_all();
-    let units_widget = DropDown::builder().build(); // bogus value - no units required for position
     let run_path = &mc.run_path;
     let idx = (curr_pos.value() * (run_path.len() as f64 - 1.0)).trunc() as usize;
     let curr_lat = run_path[idx].0;
@@ -704,7 +703,6 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc: &MapCache) {
             .unwrap();
         ui.map.set_map_source(Some(&source));
         // Get values from fit file.
-        let units_widget = DropDown::builder().build(); // bogus value - no units required for position
         let run_path = &mc.run_path;
         ui.path_layer.as_ref().unwrap().remove_all();
         for (lat, lon) in run_path.clone() {
