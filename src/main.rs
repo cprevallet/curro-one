@@ -639,7 +639,6 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     let _ = "📍";
     return symbol;
 }
-
 // Move the marker based on the current position.
 fn update_marker_layer(data: &Vec<FitDataRecord>, ui: &UserInterface, curr_pos: &Adjustment) {
     ui.marker_layer.as_ref().unwrap().remove_all();
@@ -1424,6 +1423,10 @@ fn build_gui(app: &Application) {
     ui_original.win.present();
 
     // Create a new reference count for the user_interface structure.
+    // This gets a little tricky.  We need to create a new reference
+    // counted pointer, ui_rc, from the original object and clone it
+    // twice so that we may share the contents of ui_original in two
+    // different closures ("button-clicked" and "native window response").
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
 
