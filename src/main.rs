@@ -1176,15 +1176,12 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
 }
 
 // Update the views when supplied with data.
-fn update_map_graph_and_summary_widgets(
-    ui: &UserInterface,
-    data: &Vec<FitDataRecord>,
-) -> Option<MarkerLayer> {
+fn update_map_graph_and_summary_widgets(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     let map = ui.map.clone();
     let path_layer = ui.path_layer.clone();
     let marker_layer = ui.marker_layer.clone();
     let startstop_layer = ui.startstop_layer.clone();
-    let shumate_marker_layer = build_map(
+    build_map(
         &data,
         map,
         path_layer.unwrap(),
@@ -1193,13 +1190,13 @@ fn update_map_graph_and_summary_widgets(
     );
     build_graphs(&data, &ui);
     build_summary(&data, &ui);
-    return shumate_marker_layer;
+    return;
 }
 
 // After reading the fit file, display the additional views of the UI.
 fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>) {
     // 1. Instantiate embedded widgets based on parsed fit data.
-    let _shumate_marker_layer = update_map_graph_and_summary_widgets(&ui, &data);
+    update_map_graph_and_summary_widgets(&ui, &data);
 
     // 2. Connect embedded widgets to their parents.
     ui.da_window.set_child(Some(&ui.da));
