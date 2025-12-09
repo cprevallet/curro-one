@@ -375,8 +375,15 @@ fn get_xy(
 }
 
 // Use plotters.rs to draw a graph on the drawing area.
-fn draw_graphs(gc: &GraphCache, curr_adj: &Adjustment, cr: &Context, width: f64, height: f64) {
+fn draw_graphs(
+    gc_rc: &Rc<GraphCache>,
+    curr_adj: &Adjustment,
+    cr: &Context,
+    width: f64,
+    height: f64,
+) {
     // --- 🎨 Custom Drawing Logic Starts Here ---
+    let gc = &**gc_rc;
     let root = plotters_cairo::CairoBackend::new(&cr, (width as u32, height as u32))
         .unwrap()
         .into_drawing_area();
@@ -553,18 +560,15 @@ fn build_individual_graph(
 
 // Build the graphs.  Prepare the graphical data for the drawing area and
 // set-up the draw function callback.
-fn build_graphs(data: &Vec<FitDataRecord>, ui: &UserInterface) {
+fn build_graphs(_data: &Vec<FitDataRecord>, ui: &UserInterface, gc_rc: &Rc<GraphCache>) {
     // Need to clone to use inside the closure.
     let curr_pos = ui.curr_pos_adj.clone();
     curr_pos.set_value(0.001);
-    let graph_cache = instantiate_graph_cache(&data, &ui);
-    let gc_rc = Rc::new(graph_cache);
-    let gc1 = Rc::clone(&gc_rc);
     ui.da.set_draw_func(clone!(
         #[strong]
-        gc1,
+        gc_rc,
         move |_drawing_area, cr, width, height| {
-            draw_graphs(&gc1, &curr_pos, cr, width as f64, height as f64);
+            draw_graphs(&gc_rc, &curr_pos, cr, width as f64, height as f64);
         }
     ));
 }
@@ -693,11 +697,12 @@ fn update_marker_layer(
 }
 
 // Build the map.
-fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc: &MapCache) {
+fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>) {
     if libshumate::MapSourceRegistry::with_defaults()
         .by_id("osm-mapnik")
         .is_some()
     {
+        let mc = &**mc_rc;
         let source = libshumate::MapSourceRegistry::with_defaults()
             .by_id("osm-mapnik")
             .unwrap();
@@ -1184,18 +1189,24 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
 fn update_map_graph_and_summary_widgets(
     ui: &UserInterface,
     data: &Vec<FitDataRecord>,
-    mc: &MapCache,
+    mc_rc: &Rc<MapCache>,
+    gc_rc: &Rc<GraphCache>,
 ) {
-    build_map(&data, &ui, &mc);
-    build_graphs(&data, &ui);
+    build_map(&data, &ui, &mc_rc);
+    build_graphs(&data, &ui, &gc_rc);
     build_summary(&data, &ui);
     return;
 }
 
 // After reading the fit file, display the additional views of the UI.
-fn display_run(ui: &UserInterface, data: &Vec<FitDataRecord>, mc: &MapCache) {
+fn display_run(
+    ui: &UserInterface,
+    data: &Vec<FitDataRecord>,
+    mc: &Rc<MapCache>,
+    gc: &Rc<GraphCache>,
+) {
     // 1. Instantiate embedded widgets based on parsed fit data.
-    update_map_graph_and_summary_widgets(&ui, &data, &mc);
+    update_map_graph_and_summary_widgets(&ui, &data, &mc, &gc);
 
     // 2. Connect embedded widgets to their parents.
     ui.da_window.set_child(Some(&ui.da));
@@ -1514,42 +1525,59 @@ fn build_gui(app: &Application) {
                                     let map_cache = instantiate_map_cache(&data);
                                     // Wrap the MapCache in an Rc for shared ownership.
                                     let mc_rc = Rc::new(map_cache);
-                                    // Clone the Rc pointer for each independent closure that needs the data.
-                                    let mc_rc_for_marker = Rc::clone(&mc_rc);
-                                    let mc_rc_for_units = Rc::clone(&mc_rc);
+                                    // Create a graph cache.
+                                    let graph_cache = instantiate_graph_cache(&data, &ui2);
+                                    // Wrap the GraphCache in an Rc for shared ownership.
+                                    let gc_rc = Rc::new(graph_cache);
 
-                                    display_run(&ui2, &data, &mc_rc);
+                                    // clone the Rc pointer for each independent closure that needs the data.
+                                    let mc_rc_for_units = Rc::clone(&mc_rc);
+                                    display_run(&ui2, &data, &mc_rc, &gc_rc);
                                     // Hook-up the units_widget change handler.
-                                    let data_clone = data.clone();
                                     // update everything when the unit system changes.
                                     ui2.units_widget.connect_selected_notify(clone!(
                                         #[strong]
-                                        ui2,
-                                        move |_| {
-                                            update_map_graph_and_summary_widgets(
-                                                &ui2,
-                                                &data_clone,
-                                                &mc_rc_for_units,
-                                            );
-                                        },
-                                    ));
-
-                                    // redraw the drawing area when the zoom changes.
-                                    let da = ui2.da.clone();
-                                    let data_clone2 = data.clone();
-                                    ui2.y_zoom_scale.adjustment().connect_value_changed(clone!(
+                                        data,
                                         #[strong]
                                         ui2,
                                         move |_| {
-                                            build_graphs(&data_clone2, &ui2);
-                                            da.queue_draw();
+                                            // Create a new graph cache due to zoom.
+                                            let graph_cache_units =
+                                                instantiate_graph_cache(&data, &ui2);
+                                            // Wrap the GraphCache in an Rc for shared ownership.
+                                            let gc_rc_for_units = Rc::new(graph_cache_units);
+                                            update_map_graph_and_summary_widgets(
+                                                &ui2,
+                                                &data,
+                                                &mc_rc_for_units,
+                                                &gc_rc_for_units,
+                                            );
+                                            ui2.map.queue_draw();
+                                            ui2.da.queue_draw();
                                         },
                                     ));
 
-                                    // redraw the drawing area and map when the current position changes.
+                                    // redraw the graphs when the zoom changes.
+                                    ui2.y_zoom_scale.adjustment().connect_value_changed(clone!(
+                                        #[strong]
+                                        data,
+                                        #[strong]
+                                        ui2,
+                                        move |_| {
+                                            // Create a new graph cache due to zoom.
+                                            let graph_cache_zoom =
+                                                instantiate_graph_cache(&data, &ui2);
+                                            // Wrap the GraphCache in an Rc for shared ownership.
+                                            let gc_rc_for_zoom = Rc::new(graph_cache_zoom);
+                                            build_graphs(&data, &ui2, &gc_rc_for_zoom);
+                                            ui2.da.queue_draw();
+                                        },
+                                    ));
+
+                                    // redraw the graphs and map when the current position changes.
+                                    // clone the Rc pointer for each independent closure that needs the data.
+                                    let mc_rc_for_marker = Rc::clone(&mc_rc);
                                     let curr_pos = ui2.curr_pos_adj.clone();
-                                    let da2 = ui2.da.clone();
-                                    let map = ui2.map.clone();
                                     ui2.curr_pos_scale
                                         .adjustment()
                                         .connect_value_changed(clone!(
@@ -1559,11 +1587,9 @@ fn build_gui(app: &Application) {
                                             ui2,
                                             #[strong]
                                             curr_pos,
-                                            #[strong]
-                                            mc_rc_for_marker,
                                             move |_| {
                                                 // Update graphs.
-                                                da2.queue_draw();
+                                                ui2.da.queue_draw();
                                                 // Update marker.
                                                 update_marker_layer(
                                                     &data,
@@ -1572,7 +1598,7 @@ fn build_gui(app: &Application) {
                                                     &mc_rc_for_marker,
                                                 );
                                                 // Update map.
-                                                map.queue_draw();
+                                                ui2.map.queue_draw();
                                             },
                                         ));
                                 }
