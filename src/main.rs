@@ -1270,13 +1270,13 @@ fn display_run(
     // 4. Size the widgets.
     ui.scrolled_window.set_size_request(500, 300);
     // Set where the splits start (in pixels from the left hand side.)
-    let main_split = (0.3 * ui.win.width() as f32).trunc() as i32;
-    let right_frame_split = (0.7 * (ui.win.width() as f32 - main_split as f32)).trunc() as i32;
-    ui.main_pane.set_position(main_split);
-    ui.right_frame_pane.set_position(right_frame_split);
-    // Set where the splits start (in pixels from the top.)
-    ui.left_frame_pane
-        .set_position((0.5 * ui.win.height() as f32) as i32);
+    // let main_split = (0.3 * ui.win.width() as f32).trunc() as i32;
+    // let right_frame_split = (0.7 * (ui.win.width() as f32 - main_split as f32)).trunc() as i32;
+    // ui.main_pane.set_position(main_split);
+    // ui.right_frame_pane.set_position(right_frame_split);
+    // // Set where the splits start (in pixels from the top.)
+    // ui.left_frame_pane
+    //     .set_position((0.5 * ui.win.height() as f32) as i32);
 }
 struct UserInterface {
     win: ApplicationWindow,
@@ -1746,27 +1746,37 @@ fn build_gui(app: &Application) {
             dialog.present();
         }
     )); // about btn clicked
-    ui1.win.connect_close_request(move |window| {
-        let config_path = Path::new(SETTINGSFILE);
-        // let (w, h) = window.default_size();
-        let current_config = WindowConfig {
-            width: window.width(),
-            height: window.height(),
-        };
-        match save_config(&current_config, config_path) {
-            Ok(_) => glib::signal::Propagation::Proceed,
-            Err(e) => {
-                show_error_dialog(window, e.to_string());
-                glib::signal::Propagation::Proceed
+    ui1.win.connect_close_request(clone!(
+        #[strong]
+        ui1,
+        move |window| {
+            let config_path = Path::new(SETTINGSFILE);
+            // let (w, h) = window.default_size();
+            let current_config = WindowConfig {
+                width: window.width(),
+                height: window.height(),
+                main_split: ui1.main_pane.position(),
+                right_frame_split: ui1.right_frame_pane.position(),
+                left_frame_split: ui1.left_frame_pane.position(),
+            };
+            match save_config(&current_config, config_path) {
+                Ok(_) => glib::signal::Propagation::Proceed,
+                Err(e) => {
+                    show_error_dialog(window, e.to_string());
+                    glib::signal::Propagation::Proceed
+                }
             }
         }
-    }); //window close
+    )); //window close
 } // build_gui
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WindowConfig {
     pub width: i32,
     pub height: i32,
+    pub main_split: i32,
+    pub left_frame_split: i32,
+    pub right_frame_split: i32,
 }
 
 impl Default for WindowConfig {
@@ -1774,6 +1784,9 @@ impl Default for WindowConfig {
         WindowConfig {
             width: 800,
             height: 600,
+            main_split: 200,
+            left_frame_split: 200,
+            right_frame_split: 200,
         }
     }
 }
@@ -1833,4 +1846,7 @@ fn load_config(path: &Path) -> WindowConfig {
 fn set_up_user_defaults(ui: &UserInterface) {
     let config = load_config(&Path::new(SETTINGSFILE));
     ui.win.set_default_size(config.width, config.height);
+    ui.main_pane.set_position(config.main_split);
+    ui.right_frame_pane.set_position(config.right_frame_split);
+    ui.left_frame_pane.set_position(config.left_frame_split);
 }
