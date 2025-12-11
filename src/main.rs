@@ -1516,9 +1516,7 @@ fn instantiate_map_cache(d: &Vec<FitDataRecord>) -> MapCache {
 fn build_gui(app: &Application) {
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
-    println!("Original before {:?}", ui_original.win.width());
     // Read configuration file and default values.
-    println!("Original after {:?}", ui_original.win.width());
 
     // Create a new reference count for the user_interface structure.
     // This gets a little tricky.  We need to create a new reference
@@ -1528,7 +1526,6 @@ fn build_gui(app: &Application) {
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
     ui_rc.win.present();
-    println!("ui_rc {:?}", ui_rc.win.width());
 
     // Handle callbacks for btn and about_btn.
     ui1.btn.connect_clicked(clone!(
