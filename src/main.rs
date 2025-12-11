@@ -1269,14 +1269,6 @@ fn display_run(
 
     // 4. Size the widgets.
     ui.scrolled_window.set_size_request(500, 300);
-    // Set where the splits start (in pixels from the left hand side.)
-    // let main_split = (0.3 * ui.win.width() as f32).trunc() as i32;
-    // let right_frame_split = (0.7 * (ui.win.width() as f32 - main_split as f32)).trunc() as i32;
-    // ui.main_pane.set_position(main_split);
-    // ui.right_frame_pane.set_position(right_frame_split);
-    // // Set where the splits start (in pixels from the top.)
-    // ui.left_frame_pane
-    //     .set_position((0.5 * ui.win.height() as f32) as i32);
 }
 struct UserInterface {
     win: ApplicationWindow,
@@ -1796,11 +1788,8 @@ fn save_config(config: &WindowConfig, path: &Path) -> std::io::Result<()> {
     // Use toml::to_string() to serialize the struct into a TOML string
     let toml_string = toml::to_string(config)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-
     // Write the TOML string to the specified file
     fs::write(path, toml_string)?;
-
-    println!("Configuration saved to: {}", path.display());
     Ok(())
 }
 
@@ -1826,20 +1815,11 @@ fn load_config(path: &Path) -> WindowConfig {
         Ok(toml_string) => {
             // Call the dedicated deserialization function
             match deserialize_config(&toml_string) {
-                Ok(config) => {
-                    println!("Configuration loaded successfully.");
-                    config
-                }
-                Err(e) => {
-                    eprintln!("Error parsing config file: {}. Using default.", e);
-                    WindowConfig::default()
-                }
+                Ok(config) => config,
+                Err(_e) => WindowConfig::default(),
             }
         }
-        Err(e) => {
-            eprintln!("Error reading config file: {}. Using default.", e);
-            WindowConfig::default()
-        }
+        Err(_e) => WindowConfig::default(),
     }
 }
 // Load the application settings from a configuration file.
