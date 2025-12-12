@@ -1100,12 +1100,12 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
     let range = set_plot_range(&xy, zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Pace(min/mile)";
-            xlabel = "Distance(miles)";
+            ylabel = "Pace (min/mile)";
+            xlabel = "Distance (miles)";
         }
         Units::Metric => {
-            ylabel = "Pace(min/km)";
-            xlabel = "Distance(km)";
+            ylabel = "Pace (min/km)";
+            xlabel = "Distance (km)";
         }
         Units::None => {
             ylabel = "";
@@ -1126,12 +1126,12 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Heart rate(bpm)";
-            xlabel = "Distance(miles)";
+            ylabel = "Heart rate (bpm)";
+            xlabel = "Distance (miles)";
         }
         Units::Metric => {
-            ylabel = "Heart rate(bpm)";
-            xlabel = "Distance(km)";
+            ylabel = "Heart rate (bpm)";
+            xlabel = "Distance (km)";
         }
         Units::None => {
             ylabel = "";
@@ -1153,11 +1153,11 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
     match user_unit {
         Units::US => {
             ylabel = "Cadence";
-            xlabel = "Distance(miles)";
+            xlabel = "Distance (miles)";
         }
         Units::Metric => {
             ylabel = "Cadence";
-            xlabel = "Distance(km)";
+            xlabel = "Distance (km)";
         }
         Units::None => {
             ylabel = "";
@@ -1178,12 +1178,12 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Elevation(feet)";
-            xlabel = "Distance(miles)";
+            ylabel = "Elevation (feet)";
+            xlabel = "Distance (miles)";
         }
         Units::Metric => {
-            ylabel = "Elevation(m)";
-            xlabel = "Distance(km)";
+            ylabel = "Elevation (m)";
+            xlabel = "Distance (km)";
         }
         Units::None => {
             ylabel = "";
@@ -1204,12 +1204,12 @@ fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> GraphC
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Temperature(°F)";
-            xlabel = "Distance(miles)";
+            ylabel = "Temperature (°F)";
+            xlabel = "Distance (miles)";
         }
         Units::Metric => {
-            ylabel = "Temperature(°C)";
-            xlabel = "Distance(km)";
+            ylabel = "Temperature (°C)";
+            xlabel = "Distance (km)";
         }
         Units::None => {
             ylabel = "";
@@ -1733,7 +1733,7 @@ fn build_gui(app: &Application) {
             let build = BuildMetadata::new(&build_metadata_str);
             let semantic_version = Version {
                 major: 0,
-                minor: 1,
+                minor: 2,
                 patch: 0,
                 pre: Prerelease::new("alpha.1").unwrap(),
                 build: build.unwrap(),
