@@ -43,7 +43,7 @@ use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
 use plotters_cairo::CairoBackend;
-use semver::{BuildMetadata, Prerelease, Version};
+use semver::{BuildMetadata, Prerelease};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -1746,15 +1746,18 @@ fn build_gui(app: &Application) {
                 .collect();
             // The resulting string will be something like "2025-12-10183625".
             // This is a single, valid build metadata identifier.
-            //  Create the BuildMetadata object.
-            let build = BuildMetadata::new(&build_metadata_str);
-            let semantic_version = Version {
-                major: 0,
-                minor: 4,
-                patch: 1,
-                pre: Prerelease::new("alpha.1").unwrap(),
-                build: build.unwrap(),
-            };
+            // Set the dynamic build metadata
+            let build = BuildMetadata::new(&build_metadata_str).unwrap();
+            // Get the version string injected by the build.rs script at compile time
+            const VERSION_STRING: &str = env!("CRATE_VERSION");
+            let mut semantic_version =
+                semver::Version::parse(VERSION_STRING).unwrap_or_else(|_| {
+                    // Fallback to a default if parsing fails (shouldn't happen with valid Cargo.toml)
+                    semver::Version::new(0, 0, 0)
+                });
+            // Set the semantic_version variable for the dialog.
+            semantic_version.build = build;
+            semantic_version.pre = Prerelease::new("alpha.1").unwrap();
             let dialog = gtk4::AboutDialog::builder()
                 .transient_for(&ui1.win)
                 .modal(true)
