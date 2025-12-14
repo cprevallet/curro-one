@@ -38,7 +38,10 @@ use gtk4::{
     TextView, gdk,
 };
 use libshumate::prelude::*;
-use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
+use libshumate::{
+    Coordinate, FileCache, Marker, MarkerLayer, PathLayer, RasterRenderer, SimpleMap,
+    TileDownloader,
+};
 use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
@@ -746,6 +749,14 @@ fn update_marker_layer(
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
 
+fn get_tile_downloader(simple_map: &SimpleMap) {
+    // 1. Get the current map source from the SimpleMap.
+    let map_source: RasterRenderer = simple_map.property("map-source");
+    let tile_downloader: TileDownloader = map_source.property("data-source");
+    let url_template = tile_downloader.url_template();
+    println!("{:?}", url_template);
+}
+
 // Build the map.
 fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>) {
     if libshumate::MapSourceRegistry::with_defaults()
@@ -753,6 +764,7 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
         .is_some()
     {
         let mc = &**mc_rc;
+        get_tile_downloader(&ui.map);
         // Get values from fit file.
         let run_path = &mc.run_path;
         ui.path_layer.as_ref().unwrap().remove_all();
@@ -1482,6 +1494,32 @@ fn instantiate_ui(app: &Application) -> UserInterface {
     ui.controls_box.append(&ui.y_zoom_scale);
     ui.controls_box.append(&ui.curr_pos_label);
     ui.controls_box.append(&ui.curr_pos_scale);
+    // // Map stuff
+    let cache_dir = "./my_map_cache_directory";
+    let max_size_bytes: u32 = 500 * 1024 * 1024; // 500 MiB
+    let cache_key = "";
+    // --- 2. Create the FileCache and retain the reference ---
+    let my_cache = FileCache::new_full(
+        max_size_bytes,  // Maximum size of the cache on disk
+        cache_key,       // Maximum age of files before they are considered stale
+        Some(cache_dir), // Path to the cache directory
+    );
+
+    // We now have the object we can call 'mark_up_to_date()' on later.
+    // my_cache.mark_up_to_date();
+
+    // // 2. Create the TileDownloader (the source of data).
+    let downloader = TileDownloader::new("https://tile.openstreetmap.org/{z}/{x}/{y}.png");
+
+    // // 3. Set the TileDownloader as the source for the FileCache.
+    // // This means: "If the FileCache needs a tile it doesn't have, ask the downloader."
+    // my_cache.set_source(Some(&downloader));
+    //    downloader.do_something(my_cache);
+
+    // // 4. Set the FileCache as the *main source* for the SimpleMap.
+    // // This means: "If the SimpleMap needs a tile, ask the FileCache first."
+    // ui.map.set_map_source(Some(&my_cache));
+
     let source = libshumate::MapSourceRegistry::with_defaults().by_id("osm-mapnik");
     if source.is_none() {
         panic!("No map source found.")
