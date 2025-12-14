@@ -629,7 +629,7 @@ fn add_marker_layer_to_map(map: &SimpleMap) -> Option<MarkerLayer> {
         let viewport = map.viewport().unwrap();
         let marker_layer = libshumate::MarkerLayer::new(&viewport);
         map.add_overlay_layer(&marker_layer);
-        return Some(marker_layer.clone());
+        return Some(marker_layer);
     }
     return None;
 }
@@ -650,7 +650,7 @@ fn add_path_layer_to_map(map: &SimpleMap) -> Option<PathLayer> {
         path_layer.set_stroke_width(2.0); // Thickness in pixels
         // Add the layer to the map
         map.add_overlay_layer(&path_layer);
-        return Some(path_layer.clone());
+        return Some(path_layer);
     }
     return None;
 }
