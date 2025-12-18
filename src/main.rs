@@ -1674,6 +1674,7 @@ fn build_gui(app: &Application) {
                                     },
                                 ));
 
+                                // Hook-up the zoom scale change handler.
                                 // redraw the graphs when the zoom changes.
                                 ui2.y_zoom_scale.adjustment().connect_value_changed(clone!(
                                     #[strong]
@@ -1690,6 +1691,7 @@ fn build_gui(app: &Application) {
                                     },
                                 ));
 
+                                // Hook-up the current position change handler.
                                 // redraw the graphs and map when the current position changes.
                                 // clone the Rc pointer for each independent closure that needs the data.
                                 let mc_rc_for_marker = Rc::clone(&mc_rc);
