@@ -1548,6 +1548,7 @@ fn instantiate_map_cache(d: &Vec<FitDataRecord>) -> MapCache {
     return mc;
 }
 
+// Get the file handle and set the window title based on it.
 fn get_file_handle(dialog: &FileChooserNative, ui2: &UserInterface) -> Option<File> {
     // Extract the file path
     if let Some(file) = dialog.file() {
