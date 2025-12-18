@@ -1595,8 +1595,8 @@ fn get_file_handle(dialog: &FileChooserNative, ui: &UserInterface) -> Option<Fil
 
 // Connect up the interactive widget handlers.
 fn connect_interactive_widgets(
-    data: &Vec<FitDataRecord>,
     ui: &Rc<UserInterface>,
+    data: &Vec<FitDataRecord>,
     mc_rc: &Rc<MapCache>,
     _gc_rc: &Rc<GraphCache>,
 ) {
@@ -1712,7 +1712,7 @@ fn build_gui(app: &Application) {
                                 // Wrap the GraphCache in an Rc for shared ownership.
                                 let gc_rc = Rc::new(graph_cache);
                                 display_run(&ui2, &data, &mc_rc, &gc_rc);
-                                connect_interactive_widgets(&data, &ui2, &mc_rc, &gc_rc);
+                                connect_interactive_widgets(&ui2, &data, &mc_rc, &gc_rc);
                             }
                             // unlike FileChooserDialog, 'native' creates a transient reference.
                             // It's good practice to drop references, but GTK handles the cleanup
