@@ -1548,6 +1548,46 @@ fn instantiate_map_cache(d: &Vec<FitDataRecord>) -> MapCache {
     return mc;
 }
 
+fn get_file_handle(dialog: &FileChooserNative, ui2: &UserInterface) -> Option<File> {
+    // Extract the file path
+    if let Some(file) = dialog.file() {
+        if let Some(path) = file.path() {
+            let path_str = path.to_string_lossy();
+            // Get values from fit file.
+            let file_result = File::open(&*path_str);
+            match file_result {
+                Ok(file) => {
+                    let c_title = ui2.win.title().unwrap().to_string().to_owned();
+                    let mut pfx = c_title
+                        .chars()
+                        .take_while(|&ch| ch != ':')
+                        .collect::<String>();
+                    pfx.push_str(":");
+                    pfx.push_str(" ");
+                    pfx.push_str(&path_str);
+                    ui2.win.set_title(Some(&pfx.to_string()));
+                    return Some(file);
+                }
+                Err(error) => match error.kind() {
+                    // Handle specifically "Not Found"
+                    ErrorKind::NotFound => {
+                        show_error_dialog(&ui2.win, "File not found.".to_string());
+                        return None;
+                    }
+                    _ => {
+                        show_error_dialog(&ui2.win, "Error unknown. Permissions?".to_string());
+                        return None;
+                    }
+                },
+            };
+        } else {
+            return None;
+        }
+    } else {
+        return None;
+    }
+}
+
 // Instantiate the user-interface views and handle callbacks.
 fn build_gui(app: &Application) {
     // Instantiate the views.
@@ -1585,140 +1625,104 @@ fn build_gui(app: &Application) {
                 ui2,
                 move |dialog, response| {
                     if response == ResponseType::Accept {
-                        // Extract the file path
-                        if let Some(file) = dialog.file() {
-                            if let Some(path) = file.path() {
-                                let path_str = path.to_string_lossy();
-                                // Get values from fit file.
-                                let file_result = File::open(&*path_str);
-                                let mut file = match file_result {
-                                    Ok(file) => {
-                                        let c_title =
-                                            ui2.win.title().unwrap().to_string().to_owned();
-                                        let mut pfx = c_title
-                                            .chars()
-                                            .take_while(|&ch| ch != ':')
-                                            .collect::<String>();
-                                        pfx.push_str(":");
-                                        pfx.push_str(" ");
-                                        pfx.push_str(&path_str);
-                                        ui2.win.set_title(Some(&pfx.to_string()));
-                                        file
-                                    }
-                                    Err(error) => match error.kind() {
-                                        // Handle specifically "Not Found"
-                                        ErrorKind::NotFound => {
-                                            show_error_dialog(
-                                                &ui2.win,
-                                                "File not found.".to_string(),
-                                            );
-                                            return;
-                                        }
-                                        _ => {
-                                            show_error_dialog(
-                                                &ui2.win,
-                                                "Error unknown. Permissions?".to_string(),
-                                            );
-                                            return;
-                                        }
-                                    },
-                                };
-                                if let Ok(data) = fitparser::from_reader(&mut file) {
-                                    // Create a map cache.
-                                    let map_cache = instantiate_map_cache(&data);
-                                    // Wrap the MapCache in an Rc for shared ownership.
-                                    let mc_rc = Rc::new(map_cache);
-                                    // Create a graph cache.
-                                    let graph_cache = instantiate_graph_cache(&data, &ui2);
-                                    // Wrap the GraphCache in an Rc for shared ownership.
-                                    let gc_rc = Rc::new(graph_cache);
+                        let fh = get_file_handle(&dialog, &ui2);
+                        if fh.is_some() {
+                            let mut file = fh.unwrap();
+                            if let Ok(data) = fitparser::from_reader(&mut file) {
+                                // Create a map cache.
+                                let map_cache = instantiate_map_cache(&data);
+                                // Wrap the MapCache in an Rc for shared ownership.
+                                let mc_rc = Rc::new(map_cache);
+                                // Create a graph cache.
+                                let graph_cache = instantiate_graph_cache(&data, &ui2);
+                                // Wrap the GraphCache in an Rc for shared ownership.
+                                let gc_rc = Rc::new(graph_cache);
 
-                                    // clone the Rc pointer for each independent closure that needs the data.
-                                    let mc_rc_for_units = Rc::clone(&mc_rc);
-                                    display_run(&ui2, &data, &mc_rc, &gc_rc);
-                                    // Hook-up the units_widget change handler.
-                                    // update everything when the unit system changes.
-                                    ui2.units_widget.connect_selected_notify(clone!(
+                                // clone the Rc pointer for each independent closure that needs the data.
+                                let mc_rc_for_units = Rc::clone(&mc_rc);
+                                display_run(&ui2, &data, &mc_rc, &gc_rc);
+
+                                // Hook-up the units_widget change handler.
+                                // update everything when the unit system changes.
+                                ui2.units_widget.connect_selected_notify(clone!(
+                                    #[strong]
+                                    data,
+                                    #[strong]
+                                    ui2,
+                                    move |_| {
+                                        // Create a new graph cache due to zoom.
+                                        let graph_cache_units =
+                                            instantiate_graph_cache(&data, &ui2);
+                                        // Wrap the GraphCache in an Rc for shared ownership.
+                                        let gc_rc_for_units = Rc::new(graph_cache_units);
+                                        update_map_graph_and_summary_widgets(
+                                            &ui2,
+                                            &data,
+                                            &mc_rc_for_units,
+                                            &gc_rc_for_units,
+                                        );
+                                        let curr_pos = ui2.curr_pos_adj.clone();
+                                        update_marker_layer(
+                                            &data,
+                                            &ui2,
+                                            &curr_pos,
+                                            &mc_rc_for_units,
+                                        );
+                                        // ui2.map.queue_draw();
+                                        ui2.da.queue_draw();
+                                    },
+                                ));
+
+                                // redraw the graphs when the zoom changes.
+                                ui2.y_zoom_scale.adjustment().connect_value_changed(clone!(
+                                    #[strong]
+                                    data,
+                                    #[strong]
+                                    ui2,
+                                    move |_| {
+                                        // Create a new graph cache due to zoom.
+                                        let graph_cache_zoom = instantiate_graph_cache(&data, &ui2);
+                                        // Wrap the GraphCache in an Rc for shared ownership.
+                                        let gc_rc_for_zoom = Rc::new(graph_cache_zoom);
+                                        build_graphs(&data, &ui2, &gc_rc_for_zoom);
+                                        ui2.da.queue_draw();
+                                    },
+                                ));
+
+                                // redraw the graphs and map when the current position changes.
+                                // clone the Rc pointer for each independent closure that needs the data.
+                                let mc_rc_for_marker = Rc::clone(&mc_rc);
+                                let curr_pos = ui2.curr_pos_adj.clone();
+                                ui2.curr_pos_scale
+                                    .adjustment()
+                                    .connect_value_changed(clone!(
                                         #[strong]
                                         data,
                                         #[strong]
                                         ui2,
+                                        #[strong]
+                                        curr_pos,
                                         move |_| {
-                                            // Create a new graph cache due to zoom.
-                                            let graph_cache_units =
-                                                instantiate_graph_cache(&data, &ui2);
-                                            // Wrap the GraphCache in an Rc for shared ownership.
-                                            let gc_rc_for_units = Rc::new(graph_cache_units);
-                                            update_map_graph_and_summary_widgets(
-                                                &ui2,
-                                                &data,
-                                                &mc_rc_for_units,
-                                                &gc_rc_for_units,
-                                            );
-                                            let curr_pos = ui2.curr_pos_adj.clone();
+                                            // Update graphs.
+                                            ui2.da.queue_draw();
+                                            // Update marker.
                                             update_marker_layer(
                                                 &data,
                                                 &ui2,
                                                 &curr_pos,
-                                                &mc_rc_for_units,
+                                                &mc_rc_for_marker,
                                             );
-                                            // ui2.map.queue_draw();
-                                            ui2.da.queue_draw();
+                                            // Update map.
+                                            ui2.map.queue_draw();
                                         },
                                     ));
-
-                                    // redraw the graphs when the zoom changes.
-                                    ui2.y_zoom_scale.adjustment().connect_value_changed(clone!(
-                                        #[strong]
-                                        data,
-                                        #[strong]
-                                        ui2,
-                                        move |_| {
-                                            // Create a new graph cache due to zoom.
-                                            let graph_cache_zoom =
-                                                instantiate_graph_cache(&data, &ui2);
-                                            // Wrap the GraphCache in an Rc for shared ownership.
-                                            let gc_rc_for_zoom = Rc::new(graph_cache_zoom);
-                                            build_graphs(&data, &ui2, &gc_rc_for_zoom);
-                                            ui2.da.queue_draw();
-                                        },
-                                    ));
-
-                                    // redraw the graphs and map when the current position changes.
-                                    // clone the Rc pointer for each independent closure that needs the data.
-                                    let mc_rc_for_marker = Rc::clone(&mc_rc);
-                                    let curr_pos = ui2.curr_pos_adj.clone();
-                                    ui2.curr_pos_scale
-                                        .adjustment()
-                                        .connect_value_changed(clone!(
-                                            #[strong]
-                                            data,
-                                            #[strong]
-                                            ui2,
-                                            #[strong]
-                                            curr_pos,
-                                            move |_| {
-                                                // Update graphs.
-                                                ui2.da.queue_draw();
-                                                // Update marker.
-                                                update_marker_layer(
-                                                    &data,
-                                                    &ui2,
-                                                    &curr_pos,
-                                                    &mc_rc_for_marker,
-                                                );
-                                                // Update map.
-                                                ui2.map.queue_draw();
-                                            },
-                                        ));
-                                }
+                            } else {
                             }
+                            // unlike FileChooserDialog, 'native' creates a transient reference.
+                            // It's good practice to drop references, but GTK handles the cleanup
+                            // once it goes out of scope or the window closes.
                         }
-                    } else {
                     }
-                    // unlike FileChooserDialog, 'native' creates a transient reference.
-                    // It's good practice to drop references, but GTK handles the cleanup
-                    // once it goes out of scope or the window closes.
                 },
             ));
             // 3. Show the dialog
