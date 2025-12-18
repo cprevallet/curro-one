@@ -103,9 +103,14 @@ struct MapCache {
 
 // Program entry point.
 fn main() {
-    let app = Application::builder().application_id(APP_ID).build();
-    // let app = Application::builder().build();
-    app.connect_activate(build_gui);
+    let app = Application::builder()
+        .application_id(APP_ID)
+        .flags(gtk4::gio::ApplicationFlags::HANDLES_OPEN)
+        .build();
+    app.connect_activate(build_gui_no_files);
+    app.connect_open(|app, files, _| {
+        build_gui(app, files, "");
+    });
     app.run();
 }
 
@@ -1560,6 +1565,39 @@ fn update_window_title(ui: &UserInterface, path_str: &str) {
     pfx.push_str(&path_str);
     ui.win.set_title(Some(&pfx.to_string()));
 }
+
+// Get the file handle from the command line (environment)
+fn get_file_handle_from_command_line(
+    file: &gtk4::gio::File,
+    ui: &Rc<UserInterface>,
+) -> Option<File> {
+    if let Some(file_path) = file.path() {
+        let path_buf = file.path().unwrap();
+        let path_str = path_buf.to_string_lossy();
+        let file_result = File::open(&file_path);
+        match file_result {
+            Ok(mut file) => {
+                update_window_title(&ui, &path_str);
+                tie_it_all_together(&mut file, &ui);
+                return Some(file);
+            }
+            Err(error) => match error.kind() {
+                // Handle specifically "Not Found"
+                ErrorKind::NotFound => {
+                    println!("File not found.");
+                    return None;
+                }
+                _ => {
+                    println!("Error unknown. Not a Fit File? Permissions?");
+                    return None;
+                }
+            },
+        };
+    } else {
+        return None;
+    }
+}
+
 // Get the file handle and set the window title based on it.
 fn get_file_handle_from_dialog(dialog: &FileChooserNative, ui: &UserInterface) -> Option<File> {
     // Extract the file path
@@ -1662,8 +1700,28 @@ fn connect_interactive_widgets(
     ));
 }
 
+// Get the data, create the caches, construct the views, and connect the interactive widgets.
+fn tie_it_all_together(file: &mut File, ui: &Rc<UserInterface>) {
+    if let Ok(data) = fitparser::from_reader(file) {
+        // Create a map cache.
+        let map_cache = instantiate_map_cache(&data);
+        // Wrap the MapCache in an Rc for shared ownership.
+        let mc_rc = Rc::new(map_cache);
+        // Create a graph cache.
+        let graph_cache = instantiate_graph_cache(&data, &ui);
+        // Wrap the GraphCache in an Rc for shared ownership.
+        let gc_rc = Rc::new(graph_cache);
+        construct_views_from_data(&ui, &data, &mc_rc, &gc_rc);
+        connect_interactive_widgets(&ui, &data, &mc_rc, &gc_rc);
+    }
+}
+
+// Wrapper for build_gui to handle no files from command line.
+fn build_gui_no_files(app: &Application) {
+    build_gui(&app, &[], "");
+}
 // Instantiate the user-interface views and handle callbacks.
-fn build_gui(app: &Application) {
+fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
     // Read configuration file and default values.
@@ -1676,6 +1734,11 @@ fn build_gui(app: &Application) {
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
     ui_rc.win.present();
+
+    // If the user has provided a file name on the command line - use the first file.
+    if files.len() > 0 {
+        get_file_handle_from_command_line(&files[0], &ui_rc);
+    }
 
     // Handle callbacks for btn and about_btn.
     ui1.btn.connect_clicked(clone!(
@@ -1702,18 +1765,7 @@ fn build_gui(app: &Application) {
                         let fh = get_file_handle_from_dialog(&dialog, &ui2);
                         if fh.is_some() {
                             let mut file = fh.unwrap();
-                            if let Ok(data) = fitparser::from_reader(&mut file) {
-                                // Create a map cache.
-                                let map_cache = instantiate_map_cache(&data);
-                                // Wrap the MapCache in an Rc for shared ownership.
-                                let mc_rc = Rc::new(map_cache);
-                                // Create a graph cache.
-                                let graph_cache = instantiate_graph_cache(&data, &ui2);
-                                // Wrap the GraphCache in an Rc for shared ownership.
-                                let gc_rc = Rc::new(graph_cache);
-                                construct_views_from_data(&ui2, &data, &mc_rc, &gc_rc);
-                                connect_interactive_widgets(&ui2, &data, &mc_rc, &gc_rc);
-                            }
+                            tie_it_all_together(&mut file, &ui2);
                             // unlike FileChooserDialog, 'native' creates a transient reference.
                             // It's good practice to drop references, but GTK handles the cleanup
                             // once it goes out of scope or the window closes.
