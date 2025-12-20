@@ -25,6 +25,7 @@ pub struct GraphCache {
     pub distance_cadence: GraphAttributes,
     pub distance_elevation: GraphAttributes,
     pub distance_temperature: GraphAttributes,
+    pub time_stamps: Vec<NaiveDateTime>,
 }
 
 // In memory cache to speed up redraws.
@@ -359,4 +360,32 @@ pub fn get_run_start_date(data: &Vec<FitDataRecord>) -> (i32, u32, u32) {
         }
     }
     return (year, month, day);
+}
+
+// Return the date a run started on.
+pub fn get_timestamps(data: &Vec<FitDataRecord>) -> Vec<NaiveDateTime> {
+    let mut timestamps: Vec<NaiveDateTime> = vec![];
+    for item in data {
+        match item.kind() {
+            MesgNum::Record => {
+                for fld in item.fields().iter() {
+                    if fld.name() == "timestamp" {
+                        let time_stamp = fld.value().clone().to_string();
+                        let from: Result<NaiveDateTime, chrono::ParseError> =
+                            NaiveDateTime::parse_from_str(&time_stamp, "%Y-%m-%d %H:%M:%S %z");
+                        match from {
+                            Ok(date_time) => {
+                                timestamps.push(date_time);
+                            }
+                            Err(_e) => {
+                                panic!("Couldn't parse time_stamp.");
+                            }
+                        };
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    return timestamps;
 }

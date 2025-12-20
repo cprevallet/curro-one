@@ -3,8 +3,8 @@
 use crate::config::{ICON_NAME, PROGRAM_NAME, SETTINGSFILE, Units, load_config};
 use crate::data::{
     GraphAttributes, GraphCache, MapCache, cvt_altitude, cvt_distance, cvt_elapsed_time, cvt_pace,
-    cvt_temperature, get_run_start_date, get_sess_record_field, get_time_in_zone_field, get_xy,
-    semi_to_degrees, set_plot_range,
+    cvt_temperature, get_run_start_date, get_sess_record_field, get_time_in_zone_field,
+    get_timestamps, get_xy, semi_to_degrees, set_plot_range,
 };
 use directories::BaseDirs;
 use fitparser::{FitDataField, FitDataRecord, profile::field_types::MesgNum};
@@ -54,6 +54,7 @@ pub struct UserInterface {
     pub x_zoom_adj: Adjustment,
     pub y_zoom_scale: Scale,
     pub curr_pos_label: Label,
+    pub curr_time_label: Label,
     pub y_zoom_label: Label,
     pub controls_box: gtk4::Box,
     pub uom: StringList,
@@ -164,6 +165,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .build(),
         curr_pos_label: Label::new(Some("🏃‍➡️")),
+        curr_time_label: Label::new(Some("")),
         y_zoom_label: Label::new(Some("🔍")),
         //        controls_box: gtk4::Box::new(Orientation::Vertical, 10),
         controls_box: gtk4::Box::builder()
@@ -239,6 +241,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.controls_box.append(&ui.y_zoom_scale);
     ui.controls_box.append(&ui.curr_pos_label);
     ui.controls_box.append(&ui.curr_pos_scale);
+    ui.controls_box.append(&ui.curr_time_label);
     ui.path_layer = Some(add_path_layer_to_map(&ui.map).unwrap());
     ui.startstop_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
     ui.marker_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
@@ -298,7 +301,7 @@ pub fn connect_interactive_widgets(
     ui: &Rc<UserInterface>,
     data: &Vec<FitDataRecord>,
     mc_rc: &Rc<MapCache>,
-    _gc_rc: &Rc<GraphCache>,
+    gc_rc: &Rc<GraphCache>,
 ) {
     // clone the Rc pointer for each independent closure that needs the data.
     let mc_rc_for_units = Rc::clone(&mc_rc);
@@ -343,6 +346,7 @@ pub fn connect_interactive_widgets(
     // redraw the graphs and map when the current position changes.
     // clone the Rc pointer for each independent closure that needs the data.
     let mc_rc_for_marker = Rc::clone(&mc_rc);
+    let gc_rc_for_scale = Rc::clone(&gc_rc);
     let curr_pos = ui.curr_pos_adj.clone();
     ui.curr_pos_scale.adjustment().connect_value_changed(clone!(
         #[strong]
@@ -352,6 +356,8 @@ pub fn connect_interactive_widgets(
         #[strong]
         curr_pos,
         move |_| {
+            // Update timestamp
+            update_timestamp(&ui, &curr_pos, &gc_rc_for_scale);
             // Update graphs.
             ui.da.queue_draw();
             // Update marker.
@@ -666,6 +672,15 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     }
     let _ = "📍";
     return symbol;
+}
+// Update the displayed timestamp based on the slider.
+fn update_timestamp(ui: &UserInterface, curr_pos: &Adjustment, gc_rc_for_scale: &GraphCache) {
+    let idx =
+        (curr_pos.value() * (gc_rc_for_scale.time_stamps.len() as f64 - 1.0)).trunc() as usize;
+    if idx > 0 && idx < gc_rc_for_scale.time_stamps.len() {
+        let timestamp = &gc_rc_for_scale.time_stamps[idx].to_string();
+        ui.curr_time_label.set_text(&timestamp);
+    }
 }
 // Move the marker based on the current position.
 fn update_marker_layer(
@@ -1183,12 +1198,15 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
         y_formatter: (Box::new(num_formatter)),
         // color: (&BROWN),
     };
+
+    let time_stamps = get_timestamps(&d);
     let gc: GraphCache = GraphCache {
         distance_pace: distance_pace,
         distance_heart_rate: distance_heart_rate,
         distance_cadence: distance_cadence,
         distance_elevation: distance_elevation,
         distance_temperature: distance_temperature,
+        time_stamps: time_stamps,
     };
     return gc;
 }
