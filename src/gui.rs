@@ -4,7 +4,7 @@ use crate::config::{ICON_NAME, PROGRAM_NAME, SETTINGSFILE, Units, load_config};
 use crate::data::{
     GraphAttributes, GraphCache, MapCache, cvt_altitude, cvt_distance, cvt_elapsed_time, cvt_pace,
     cvt_temperature, get_run_start_date, get_sess_record_field, get_time_in_zone_field,
-    get_timestamps, get_xy, semi_to_degrees, set_plot_range,
+    get_timestamps, get_xy, is_american_thanksgiving, semi_to_degrees, set_plot_range,
 };
 use directories::BaseDirs;
 use fitparser::{FitDataField, FitDataRecord, profile::field_types::MesgNum};
@@ -644,11 +644,10 @@ fn add_path_layer_to_map(map: &SimpleMap) -> Option<PathLayer> {
     }
     return None;
 }
-
 // Return a (date dependent) unicode symbol.
 fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     let mut symbol = concat!(r#"<span size="200%">"#, "🏃", "</span>");
-    let (_year, month, day) = get_run_start_date(data);
+    let (year, month, day) = get_run_start_date(data);
     if month == 1 && day == 1 {
         symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>");
     }
@@ -669,6 +668,9 @@ fn get_symbol(data: &Vec<FitDataRecord>) -> &str {
     }
     if month == 12 && day == 31 {
         symbol = concat!(r#"<span size="200%">"#, "🍾", "</span>");
+    }
+    if is_american_thanksgiving(year, month, day) {
+        symbol = concat!(r#"<span size="200%">"#, "🦃", "</span>");
     }
     let _ = "📍";
     return symbol;

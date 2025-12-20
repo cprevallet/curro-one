@@ -2,8 +2,7 @@
 
 use crate::config::Units;
 use crate::gui::get_unit_system;
-use chrono::Datelike;
-use chrono::NaiveDateTime;
+use chrono::{Datelike, NaiveDate, NaiveDateTime, Weekday};
 use fitparser::{FitDataRecord, Value, profile::field_types::MesgNum};
 use gtk4::DropDown;
 
@@ -388,4 +387,28 @@ pub fn get_timestamps(data: &Vec<FitDataRecord>) -> Vec<NaiveDateTime> {
         }
     }
     return timestamps;
+}
+// Determines if a given year, month, and day corresponds to American Thanksgiving.
+pub fn is_american_thanksgiving(year: i32, month: u32, day: u32) -> bool {
+    // Thanksgiving is always in November
+    if month != 11 {
+        return false;
+    }
+    // Basic validation for the day range (Nov 22 - Nov 28)
+    if day < 22 || day > 28 {
+        return false;
+    }
+    // Get the date object for November 1st of that year
+    if let Some(first_of_nov) = NaiveDate::from_ymd_opt(year, 11, 1) {
+        let first_weekday = first_of_nov.weekday();
+        // Calculate days from the 1st to the first Thursday
+        // Weekday::Thu is represented as 3 (0-indexed starting Mon)
+        let days_until_first_thursday =
+            (Weekday::Thu.num_days_from_monday() + 7 - first_weekday.num_days_from_monday()) % 7;
+        // The first Thursday is (1 + offset)
+        // The fourth Thursday is (1 + offset + 21)
+        let thanksgiving_day = 1 + days_until_first_thursday + 21;
+        return day == thanksgiving_day;
+    }
+    false
 }
