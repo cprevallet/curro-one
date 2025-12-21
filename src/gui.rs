@@ -173,7 +173,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .width_request(120)
             .spacing(10)
             .build(),
-        uom: StringList::new(&["🇪🇺 Metric", "🇺🇸 US"]),
+        uom: StringList::new(&["⚽ Metric", "🏈 US"]),
 
         units_widget: DropDown::builder()
             .margin_top(5)
@@ -375,10 +375,10 @@ pub fn get_unit_system(units_widget: &DropDown) -> Units {
         if let Some(item_obj) = model.item(units_widget.selected()) {
             if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
                 let unit_string = String::from(string_obj.string());
-                if unit_string == "🇪🇺 Metric" {
+                if unit_string == "⚽ Metric" {
                     return Units::Metric;
                 }
-                if unit_string == "🇺🇸 US" {
+                if unit_string == "🏈 US" {
                     return Units::US;
                 }
             }
