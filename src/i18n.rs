@@ -18,6 +18,7 @@ thread_local! {
 
     // Load the appropriate file based on the detected language
     let ftl_content = match lang_id.language.as_str() {
+        "es" => include_str!("../i18n/es/gui.ftl"),
         "fr" => include_str!("../i18n/fr/gui.ftl"),
         _ => include_str!("../i18n/en-US/gui.ftl"),
     };
