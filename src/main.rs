@@ -29,13 +29,13 @@ mod gui;
 mod i18n;
 
 use crate::config::{
-    APP_ID, ARTIST1, ARTIST2, AUTHOR, COMMENTS, COPYRIGHT, ICON_NAME, PROGRAM_NAME, WindowConfig,
-    save_config,
+    APP_ID, ARTIST1, ARTIST2, AUTHOR, COPYRIGHT, ICON_NAME, PROGRAM_NAME, WindowConfig, save_config,
 };
 use crate::gui::{
     UserInterface, connect_interactive_widgets, construct_views_from_data, instantiate_graph_cache,
     instantiate_map_cache, instantiate_ui,
 };
+use crate::i18n::tr;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
@@ -282,6 +282,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
             // Set the semantic_version variable for the dialog.
             semantic_version.build = build;
             semantic_version.pre = Prerelease::new("alpha.1").unwrap();
+            let comments: String = tr("ABOUT_DIALOG_COMMENT", None);
             let dialog = gtk4::AboutDialog::builder()
                 .transient_for(&ui1.win)
                 .modal(true)
@@ -291,7 +292,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 .wrap_license(true)
                 .version(semantic_version.to_string())
                 .copyright(COPYRIGHT)
-                .comments(COMMENTS)
+                .comments(comments)
                 .authors(vec![AUTHOR.to_string()])
                 .authors(vec![ARTIST1.to_string(), ARTIST2.to_string()])
                 .build();

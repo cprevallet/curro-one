@@ -1,5 +1,6 @@
 PROGRAM_TITLE = PROGRAM_NAME
 ABOUT_BUTTON_LABEL = About
+ABOUT_DIALOG_COMMENT = View your run files on the desktop.
 OPEN_FILE_BUTTON_LABEL = Open a FIT file
 RUNNER_ICON = 🏃‍➡️
 ZOOM_ICON = 🔍

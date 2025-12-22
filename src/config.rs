@@ -9,7 +9,6 @@ pub const ICON_NAME: &str = "siliconsneaker2";
 pub const APP_ID: &str = "com.github.cprevallet.siliconsneaker2";
 pub const PROGRAM_NAME: &str = "SiliconSneaker2";
 pub const COPYRIGHT: &str = "Copyright © 2025";
-pub const COMMENTS: &str = "View your run files on the desktop!";
 pub const AUTHOR: &str = "Craig S. Prevallet <penguintx@hotmail.com>";
 pub const ARTIST1: &str = "Craig S. Prevallet";
 pub const ARTIST2: &str = "Amos Kofi Commey";

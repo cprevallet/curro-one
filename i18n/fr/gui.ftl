@@ -2,6 +2,7 @@ PROGRAM_TITLE = NOM_DU_PROGRAMME
 UNITS_METRIC = ⚽ Métrique
 UNITS_US = 🏈 US
 ABOUT_BUTTON_LABEL = À propos
+ABOUT_DIALOG_COMMENT = Consultez vos fichiers de course à pied sur le bureau de votre ordinateur.
 OPEN_FILE_BUTTON_LABEL = Ouvrir un fichier FIT...
 RUNNER_ICON = 🏃‍➡️
 ZOOM_ICON = 🔍
