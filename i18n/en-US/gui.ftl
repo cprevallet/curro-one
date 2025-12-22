@@ -1,9 +1,12 @@
 PROGRAM_TITLE = PROGRAM_NAME
+COPYRIGHT = Copyright
 UNITS_METRIC = ⚽ Metric
 UNITS_US = 🏈 US
 ABOUT_BUTTON_LABEL = About
 ABOUT_DIALOG_COMMENT = View your run files on the desktop.
 OPEN_FILE_BUTTON_LABEL = Open a FIT file
+MESSAGE_FILE_NOT_FOUND = File not found.
+MESSAGE_PERMISSIONS = Unknown error. Permissions problem?
 
 TOOLTIP_TEXT_VIEW = 
     This section contains a report of lap, heart rate zones, and session summary information.

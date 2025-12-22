@@ -1,9 +1,12 @@
 PROGRAM_TITLE = NOM_DU_PROGRAMME
+COPYRIGHT = Droits d'auteur
 UNITS_METRIC = ⚽ Métrique
 UNITS_US = 🏈 US
 ABOUT_BUTTON_LABEL = À propos
 ABOUT_DIALOG_COMMENT = Consultez vos fichiers de course à pied sur le bureau de votre ordinateur.
 OPEN_FILE_BUTTON_LABEL = Ouvrir un fichier FIT...
+MESSAGE_FILE_NOT_FOUND = Fichier introuvable.
+MESSAGE_PERMISSIONS = Erreur inconnue. Problème d'autorisations?
 
 TOOLTIP_TEXT_VIEW = 
     Cette section contient un rapport sur les tours, les zones de fréquence cardiaque et les informations de résumé de session.

@@ -155,11 +155,11 @@ fn get_file_handle_from_dialog(dialog: &FileChooserNative, ui: &UserInterface) -
                 Err(error) => match error.kind() {
                     // Handle specifically "Not Found"
                     ErrorKind::NotFound => {
-                        show_error_dialog(&ui.win, "File not found.".to_string());
+                        show_error_dialog(&ui.win, tr("MESSAGE_FILE_NOT_FOUND", None));
                         return None;
                     }
                     _ => {
-                        show_error_dialog(&ui.win, "Error unknown. Permissions?".to_string());
+                        show_error_dialog(&ui.win, tr("MESSAGE_PERMISSIONS", None));
                         return None;
                     }
                 },
@@ -283,6 +283,8 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
             semantic_version.build = build;
             semantic_version.pre = Prerelease::new("alpha.1").unwrap();
             let comments: String = tr("ABOUT_DIALOG_COMMENT", None);
+            let copyright: String = tr("COPYRIGHT", None);
+            let rights: String = copyright.to_owned() + &COPYRIGHT;
             let dialog = gtk4::AboutDialog::builder()
                 .transient_for(&ui1.win)
                 .modal(true)
@@ -291,7 +293,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 .license_type(License::Gpl20)
                 .wrap_license(true)
                 .version(semantic_version.to_string())
-                .copyright(COPYRIGHT)
+                .copyright(rights)
                 .comments(comments)
                 .authors(vec![AUTHOR.to_string()])
                 .authors(vec![ARTIST1.to_string(), ARTIST2.to_string()])
