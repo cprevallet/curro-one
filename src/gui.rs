@@ -854,7 +854,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "feet"
+                                tr("UNIT_FEET", None),
                             ));
                         }
                         Units::Metric => {
@@ -862,7 +862,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "meters"
+                                tr("UNIT_METERS", None),
                             ));
                         }
                         Units::None => {
@@ -884,7 +884,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "miles"
+                                tr("UNIT_MILES", None),
                             ));
                         }
                         Units::Metric => {
@@ -892,7 +892,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "kilometers"
+                                tr("UNIT_KM", None),
                             ));
                         }
                         Units::None => {
@@ -960,7 +960,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "min/mile"
+                                tr("UNIT_PACE_US", None),
                             ));
                         }
                         Units::Metric => {
@@ -968,7 +968,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                                 "{:<23}: {:<.2} {:<}\n",
                                 fld.name(),
                                 val_cvt,
-                                "min/km"
+                                tr("UNIT_PACE_METRIC", None),
                             ));
                         }
                         Units::None => {
@@ -1006,9 +1006,10 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
                 }
                 if item.kind() == MesgNum::Lap {
                     lap_index = lap_index + 1;
+                    let lap_name = &tr("SUMMARY_LAP_HEADER", None);
                     lap_str = format!(
-                        "------------------------------ Lap {}-----------------------------------\n",
-                        lap_index
+                        "------------------------------ {} {}-----------------------------------\n",
+                        lap_name, lap_index
                     );
                     ui.text_buffer.insert(&mut end, "\n");
                     ui.text_buffer.insert(&mut end, &lap_str);

@@ -56,7 +56,7 @@ LABEL_TEMP_C = Température (°C)
 
 SUMMARY_FILE_LOADED = Fichier chargé.
 SUMMARY_SESSION_HEADER = ============================ Session ==================================
-SUMMARY_LAP_HEADER = ------------------------------ Tour {$index}-----------------------------------
+SUMMARY_LAP_HEADER = Tour
 SUMMARY_HR_ZONE_HEADER = ========= Temps dans les zones de fréquence cardiaque pour la session ========
 SUMMARY_HR_ZONE_LABEL = Zone
 

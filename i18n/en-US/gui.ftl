@@ -54,7 +54,7 @@ LABEL_TEMP_C = Temperature (°C)
 
 SUMMARY_FILE_LOADED = File loaded.
 SUMMARY_SESSION_HEADER = ============================ Session ==================================
-SUMMARY_LAP_HEADER = ------------------------------ Lap {$index}-----------------------------------
+SUMMARY_LAP_HEADER = Lap
 SUMMARY_HR_ZONE_HEADER = =================== Time in Heart Rate Zones for Session  ========
 SUMMARY_HR_ZONE_LABEL = Zone
 
