@@ -184,7 +184,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(100)
             .build(),
-        about_label: tr("about-button-label", None),
+        about_label: tr("ABOUT_BUTTON_LABEL", None),
         about_btn: Button::builder()
             .margin_top(5)
             .margin_bottom(5)
@@ -209,28 +209,26 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
     ui.text_view.set_buffer(Some(&ui.text_buffer));
-    ui.text_view.set_tooltip_text(Some("This section contains a report of lap, heart rate zones, and session summary information.\n\nThe text may be cut and pasted to other applications."));
+    ui.text_view
+        .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
     ui.scrolled_window.set_child(Some(&ui.text_view));
-    ui.about_btn.set_tooltip_text(Some(
-        "Show program credits, license, and copyright information.",
-    ));
+    ui.about_btn
+        .set_tooltip_text(Some(&tr("TOOLTIP_ABOUT_BUTTON", None)));
 
     // Button with icon and label.
     let button_content = gtk4::Box::new(Orientation::Horizontal, 6);
     button_content.set_halign(gtk4::Align::Center);
     // "document-open" is a standard Freedesktop icon name.
     let icon = Image::from_icon_name("document-open");
-    let label = Label::new(Some("Open a FIT file..."));
+    let label = Label::new(Some(&tr("OPEN_FILE_BUTTON_LABEL", None)));
     button_content.append(&icon);
     button_content.append(&label);
     ui.btn.set_child(Some(&button_content));
-    ui.btn.set_tooltip_text(Some(
-        "Open a Garmin Activity Fit file.\n\nPlease ensure you have copied the file from the watch to the file system first.",
-    ));
+    ui.btn
+        .set_tooltip_text(Some(&tr("TOOLTIP_OPEN_BUTTON", None)));
 
-    ui.units_widget.set_tooltip_text(Some(
-        "Select your preferred unit system.\n\nThis will be the default next time you start the program but can be changed anytime.",
-    ));
+    ui.units_widget
+        .set_tooltip_text(Some(&tr("TOOLTIP_UNITS_DROPDOWN", None)));
     ui.win.set_icon_name(Some(ICON_NAME));
     ui.win.set_child(Some(&ui.outer_box));
     ui.button_box.append(&ui.btn);
@@ -247,14 +245,18 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.startstop_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
     ui.marker_layer = Some(add_marker_layer_to_map(&ui.map).unwrap());
 
-    ui.curr_pos_scale.set_tooltip_text(Some("Move from the beginning to the end of your run with this control.\n\nHairlines will appear on the graphs and a marker will appear on the map indicating your position. Reset to the beginning to remove.\n\nUse your keyboard right and left arrows for high precision control."));
-    ui.curr_pos_label.set_tooltip_text(Some("Move from the beginning to the end of your run with this control.\n\nHairlines will appear on the graphs and a marker will appear on the map indicating your position. Reset to the beginning to remove.\n\nUse your keyboard right and left arrows for high precision control."));
+    ui.curr_pos_scale
+        .set_tooltip_text(Some(&tr("TOOLTIP_POSITION_SCALE", None)));
+    ui.curr_pos_label
+        .set_tooltip_text(Some(&tr("TOOLTIP_POSITION_SCALE", None)));
     ui.y_zoom_scale
-        .set_tooltip_text(Some("Zoom the graphs' y-axes with this control."));
+        .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
     ui.y_zoom_label
-        .set_tooltip_text(Some("Zoom the graphs' y-axes with this control."));
-    ui.frame_left.set_tooltip_text(Some("This section displays a run path based on GPS data collected by your watch.\n\nLook carefully at the runner displayed during certain holidays to see a program Easter Egg."));
-    ui.frame_right.set_tooltip_text(Some("This section contains graphs of values collected by your watch during your activity.\n\nDisplayed values are dependent on the sensors your watch supports (heart rate, altimeter, etc.)."));
+        .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
+    ui.frame_left
+        .set_tooltip_text(Some(&tr("TOOLTIP_MAP_FRAME", None)));
+    ui.frame_right
+        .set_tooltip_text(Some(&tr("TOOLTIP_GRAPH_FRAME", None)));
     // query paths of user-invisible standard directories.
     let base_dirs = BaseDirs::new();
     if base_dirs.is_some() {
@@ -985,7 +987,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
 fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     // Get the enumerated value for the unit system the user selected.
     let user_unit = get_unit_system(&ui.units_widget);
-    ui.text_buffer.set_text("File loaded.");
+    ui.text_buffer.set_text(&tr("SUMMARY_FILE_LOADED", None));
     // Clear out anything in the buffer.
     let mut start = ui.text_buffer.start_iter();
     let mut end = ui.text_buffer.end_iter();
@@ -998,10 +1000,8 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
                 // print all the data records in FIT file
                 if item.kind() == MesgNum::Session {
                     ui.text_buffer.insert(&mut end, "\n");
-                    ui.text_buffer.insert(
-                        &mut end,
-                        "============================ Session ==================================\n",
-                    );
+                    ui.text_buffer
+                        .insert(&mut end, &tr("SUMMARY_SESSION_HEADER", None));
                     ui.text_buffer.insert(&mut end, "\n");
                 }
                 if item.kind() == MesgNum::Lap {
@@ -1028,10 +1028,8 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     if let (Some(zone_times), Some(zone_limits)) = get_time_in_zone_field(data) {
         // There are 7 zones but only 6 upper limits.
         ui.text_buffer.insert(&mut end, "\n");
-        ui.text_buffer.insert(
-            &mut end,
-            "=================== Time in Heart Rate Zones for Session  ========\n",
-        );
+        ui.text_buffer
+            .insert(&mut end, &tr("SUMMARY_HR_ZONE_HEADER", None));
         ui.text_buffer.insert(&mut end, "\n");
         for (z, val) in zone_times.iter().enumerate() {
             let val_cvt = cvt_elapsed_time(*val as f32);
@@ -1049,7 +1047,13 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
             }
             let value_str = format!(
                 "{:<5}{:<} ({:>3}-{:>3} bpm): {:01}h:{:02}m:{:02}s\n",
-                "Zone", z, ll as i32, ul as i32, val_cvt.0, val_cvt.1, val_cvt.2
+                tr("SUMMARY_HR_ZONE_LABEL", None),
+                z,
+                ll as i32,
+                ul as i32,
+                val_cvt.0,
+                val_cvt.1,
+                val_cvt.2
             );
             ui.text_buffer.insert(&mut end, &value_str);
         }
@@ -1072,28 +1076,29 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
         let secs = x.fract() * 60.0;
         format!("{:02.0}:{:02.0}", mins, secs)
     };
-    let mut xlabel: &str;
-    let mut ylabel: &str;
+    // let mut xlabel: &str;
+    let mut xlabel: String;
+    let mut ylabel: String;
     // distance_pace
     let xy = get_xy(&d, &ui.units_widget, "distance", "enhanced_speed");
     let range = set_plot_range(&xy, zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Pace (min/mile)";
-            xlabel = "Distance (miles)";
+            ylabel = tr("LABEL_PACE_US", None);
+            xlabel = tr("LABEL_DISTANCE_MILES", None);
         }
         Units::Metric => {
-            ylabel = "Pace (min/km)";
-            xlabel = "Distance (km)";
+            ylabel = tr("LABEL_PACE_METRIC", None);
+            xlabel = tr("LABEL_DISTANCE_KM", None);
         }
         Units::None => {
-            ylabel = "";
-            xlabel = "";
+            ylabel = "".to_string();
+            xlabel = "".to_string();
         }
     }
     let distance_pace = GraphAttributes {
         plotvals: (xy),
-        caption: (String::from("Pace")),
+        caption: tr("GRAPH_CAPTION_PACE", None),
         xlabel: (String::from(xlabel)),
         ylabel: (String::from(ylabel)),
         plot_range: (range),
@@ -1105,21 +1110,21 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Heart rate (bpm)";
-            xlabel = "Distance (miles)";
+            ylabel = tr("LABEL_HR_BPM", None);
+            xlabel = tr("LABEL_DISTANCE_MILES", None);
         }
         Units::Metric => {
-            ylabel = "Heart rate (bpm)";
-            xlabel = "Distance (km)";
+            ylabel = tr("LABEL_HR_BPM", None);
+            xlabel = tr("LABEL_DISTANCE_KM", None);
         }
         Units::None => {
-            ylabel = "";
-            xlabel = "";
+            ylabel = "".to_string();
+            xlabel = "".to_string();
         }
     }
     let distance_heart_rate = GraphAttributes {
         plotvals: (xy),
-        caption: (String::from("Heart rate")),
+        caption: tr("GRAPH_CAPTION_HR", None),
         xlabel: (String::from(xlabel)),
         ylabel: (String::from(ylabel)),
         plot_range: (range),
@@ -1131,21 +1136,21 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Cadence";
-            xlabel = "Distance (miles)";
+            ylabel = tr("LABEL_CADENCE", None);
+            xlabel = tr("LABEL_DISTANCE_MILES", None);
         }
         Units::Metric => {
-            ylabel = "Cadence";
-            xlabel = "Distance (km)";
+            ylabel = tr("LABEL_CADENCE", None);
+            xlabel = tr("LABEL_DISTANCE_KM", None);
         }
         Units::None => {
-            ylabel = "";
-            xlabel = "";
+            ylabel = "".to_string();
+            xlabel = "".to_string();
         }
     }
     let distance_cadence = GraphAttributes {
         plotvals: (xy),
-        caption: (String::from("Cadence")),
+        caption: tr("GRAPH_CAPTION_CADENCE", None),
         xlabel: (String::from(xlabel)),
         ylabel: (String::from(ylabel)),
         plot_range: (range),
@@ -1157,21 +1162,21 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Elevation (feet)";
-            xlabel = "Distance (miles)";
+            ylabel = tr("LABEL_ELEVATION_FT", None);
+            xlabel = tr("LABEL_DISTANCE_MILES", None);
         }
         Units::Metric => {
-            ylabel = "Elevation (m)";
-            xlabel = "Distance (km)";
+            ylabel = tr("LABEL_ELEVATION_M", None);
+            xlabel = tr("LABEL_DISTANCE_KM", None);
         }
         Units::None => {
-            ylabel = "";
-            xlabel = "";
+            ylabel = "".to_string();
+            xlabel = "".to_string();
         }
     }
     let distance_elevation = GraphAttributes {
         plotvals: (xy),
-        caption: (String::from("Elevation")),
+        caption: tr("GRAPH_CAPTION_ELEVATION", None),
         xlabel: (String::from(xlabel)),
         ylabel: (String::from(ylabel)),
         plot_range: (range),
@@ -1183,21 +1188,21 @@ pub fn instantiate_graph_cache(d: &Vec<FitDataRecord>, ui: &UserInterface) -> Gr
     let range = set_plot_range(&xy.clone(), zoom_x, zoom_y);
     match user_unit {
         Units::US => {
-            ylabel = "Temperature (°F)";
-            xlabel = "Distance (miles)";
+            ylabel = tr("LABEL_TEMP_F", None);
+            xlabel = tr("LABEL_DISTANCE_MILES", None);
         }
         Units::Metric => {
-            ylabel = "Temperature (°C)";
-            xlabel = "Distance (km)";
+            ylabel = tr("LABEL_TEMP_C", None);
+            xlabel = tr("LABEL_DISTANCE_KM", None);
         }
         Units::None => {
-            ylabel = "";
-            xlabel = "";
+            ylabel = "".to_string();
+            xlabel = "".to_string();
         }
     }
     let distance_temperature = GraphAttributes {
         plotvals: (xy),
-        caption: (String::from("Temperature")),
+        caption: tr("GRAPH_CAPTION_TEMP", None),
         xlabel: (String::from(xlabel)),
         ylabel: (String::from(ylabel)),
         plot_range: (range),
