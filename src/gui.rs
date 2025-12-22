@@ -801,7 +801,44 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
         }
     }
 }
-
+// Return a language specific string for the field name identifier.
+fn pretty_field(fld: &FitDataField) -> String {
+    match fld.name() {
+        "start_position_lat" => return tr("PRETTY_START_POSITION_LAT", None),
+        "start_position_long" => return tr("PRETTY_START_POSITION_LONG", None),
+        "end_position_lat" => return tr("PRETTY_END_POSITION_LAT", None),
+        "end_position_long" => return tr("PRETTY_END_POSITION_LONG", None),
+        "total_strides" => return tr("PRETTY_TOTAL_STRIDES", None),
+        "total_calories" => return tr("PRETTY_TOTAL_CALORIES", None),
+        "avg_heart_rate" => return tr("PRETTY_AVG_HEART_RATE", None),
+        "max_heart_rate" => return tr("PRETTY_MAX_HEART_RATE", None),
+        "avg_running_cadence" => return tr("PRETTY_AVG_RUNNING_CADENCE", None),
+        "max_running_cadence" => return tr("PRETTY_MAX_RUNNING_CADENCE", None),
+        "total_training_effect" => return tr("PRETTY_TOTAL_TRAINING_EFFECT", None),
+        "first_lap_index" => return tr("PRETTY_FIRST_LAP_INDEX", None),
+        "num_laps" => return tr("PRETTY_NUM_LAPS", None),
+        "avg_fractional_cadence" => return tr("PRETTY_AVG_FRACTIONAL_CADENCE", None),
+        "max_fractional_cadence" => return tr("PRETTY_MAX_FRACTIONAL_CADENCE", None),
+        "total_anaerobic_training_effect" => {
+            return tr("PRETTY_TOTAL_ANAEROBIC_TRAINING_EFFECT", None);
+        }
+        "sport" => return tr("PRETTY_SPORT", None),
+        "sub_sport" => return tr("PRETTY_SUB_SPORT", None),
+        "timestamp" => return tr("PRETTY_TIMESTAMP", None),
+        "start_time" => return tr("PRETTY_START_TIME", None),
+        "total_ascent" => return tr("PRETTY_TOTAL_ASCENT", None),
+        "total_descent" => return tr("PRETTY_TOTAL_DESCENT", None),
+        "total_distance" => return tr("PRETTY_TOTAL_DISTANCE", None),
+        "total_elapsed_time" => return tr("PRETTY_TOTAL_ELAPSED_TIME", None),
+        "total_timer_time" => return tr("PRETTY_TOTAL_TIMER_TIME", None),
+        "enhanced_avg_speed" => return tr("PRETTY_ENHANCED_AVG_SPEED", None),
+        "enhanced_max_speed" => return tr("PRETTY_ENHANCED_MAX_SPEED", None),
+        "min_temperature" => return tr("PRETTY_MIN_TEMPERATURE", None),
+        "max_temperature" => return tr("PRETTY_MAX_TEMPERATURE", None),
+        "avg_temperature" => return tr("PRETTY_AVG_TEMPERATURE", None),
+        _ => return "".to_string(),
+    }
+}
 // #####################################################################
 // ##################### SUMMARY FUNCTIONS #############################
 // #####################################################################
@@ -813,7 +850,7 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
             match result {
                 Ok(semi) => {
                     let degrees = semi_to_degrees(semi as f32);
-                    return Some(format!("{:<23}: {degrees:<6.3}°\n", fld.name(),));
+                    return Some(format!("{:<30}: {degrees:<6.3}°\n", pretty_field(fld)));
                 }
                 Err(_) => return None,
             }
@@ -836,8 +873,8 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
         | "timestamp"
         | "start_time" => {
             return Some(format!(
-                "{:<23}: {:<#} {:<}\n",
-                fld.name(),
+                "{:<30}: {:<#} {:<}\n",
+                pretty_field(fld),
                 fld.value(),
                 fld.units()
             ));
@@ -850,22 +887,22 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                     match user_unit {
                         Units::US => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_FEET", None),
                             ));
                         }
                         Units::Metric => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_METERS", None),
                             ));
                         }
                         Units::None => {
-                            return Some(format!("{:<23}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
+                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
                         }
                     }
                 }
@@ -880,22 +917,22 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                     match user_unit {
                         Units::US => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_MILES", None),
                             ));
                         }
                         Units::Metric => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_KM", None),
                             ));
                         }
                         Units::None => {
-                            return Some(format!("{:<23}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
+                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
                         }
                     }
                 }
@@ -908,8 +945,8 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                 Ok(val) => {
                     let val_cvt = cvt_elapsed_time(val as f32);
                     return Some(format!(
-                        "{:<23}: {:01}h:{:02}m:{:02}s\n",
-                        fld.name(),
+                        "{:<30}: {:01}h:{:02}m:{:02}s\n",
+                        pretty_field(fld),
                         val_cvt.0,
                         val_cvt.1,
                         val_cvt.2
@@ -926,22 +963,22 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                     match user_unit {
                         Units::US => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 "°F"
                             ));
                         }
                         Units::Metric => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 "°C"
                             ));
                         }
                         Units::None => {
-                            return Some(format!("{:<23}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
+                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
                         }
                     }
                 }
@@ -956,22 +993,22 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                     match user_unit {
                         Units::US => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_PACE_US", None),
                             ));
                         }
                         Units::Metric => {
                             return Some(format!(
-                                "{:<23}: {:<.2} {:<}\n",
-                                fld.name(),
+                                "{:<30}: {:<.2} {:<}\n",
+                                pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_PACE_METRIC", None),
                             ));
                         }
                         Units::None => {
-                            return Some(format!("{:<23}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
+                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
                         }
                     }
                 }
