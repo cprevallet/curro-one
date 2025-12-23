@@ -86,12 +86,15 @@ Section "Components" Components
 
   ;Install the following files
   CreateDirectory $INSTDIR\bin
+  CreateDirectory $INSTDIR\doc
   CreateDirectory $INSTDIR\etc
   CreateDirectory $INSTDIR\lib
   CreateDirectory $INSTDIR\share
   CreateDirectory $INSTDIR\icons
   SetOutPath "$INSTDIR\\bin"
   File /r "bin\"
+  SetOutPath "$INSTDIR\\doc"
+  File /r "doc\"
   SetOutPath "$INSTDIR\\etc"
   File /r "etc\"
   SetOutPath "$INSTDIR\\lib"
@@ -122,6 +125,7 @@ Section "Components" Components
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"  "" "$INSTDIR\\icons\\siliconsneaker2.ico" 0
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\SiliconSneaker2.lnk" "$INSTDIR\\bin\\siliconsneaker2" "" "$INSTDIR\\icons\\siliconsneaker2.ico" 0
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\SiliconSneaker2_Documentation.lnk" "$INSTDIR\\doc\\SiliconSneaker2 User Documentation.pdf" "" "$INSTDIR\\icons\\siliconsneaker2.ico" 0
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
