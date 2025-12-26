@@ -30,7 +30,7 @@ copyright = "2025, Craig Prevallet <craig.prevallet@hotmail.com>"
 depends = "$auto"
 section = "utility"
 priority = "optional"
-license = ["LICENSE", 0]
+license-file = ["LICENSE", 0]
 assets = [
  ["target/release/siliconsneaker2", "usr/local/bin/", "755"],
  ["./siliconsneaker2.desktop", "/usr/share/applications/siliconsneaker2.desktop", "644"],
