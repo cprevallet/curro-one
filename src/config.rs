@@ -10,8 +10,9 @@ pub const APP_ID: &str = "com.github.cprevallet.siliconsneaker2";
 pub const PROGRAM_NAME: &str = "SiliconSneaker2";
 pub const COPYRIGHT: &str = "© 2025";
 pub const AUTHOR: &str = "Craig S. Prevallet <penguintx@hotmail.com>";
-pub const ARTIST1: &str = "Craig S. Prevallet";
-pub const ARTIST2: &str = "Amos Kofi Commey";
+pub const ARTIST1: &str = "Amos Kofi Commey";
+pub const TESTER1: &str = "Gabriel A. Prevallet";
+pub const TESTER2: &str = "Jacob Thymann Nielsen";
 pub const SETTINGSFILE: &str = "siliconsneaker2_settings.toml";
 
 // Unit of measure system.

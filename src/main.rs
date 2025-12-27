@@ -29,7 +29,8 @@ mod gui;
 mod i18n;
 
 use crate::config::{
-    APP_ID, ARTIST1, ARTIST2, AUTHOR, COPYRIGHT, ICON_NAME, PROGRAM_NAME, WindowConfig, save_config,
+    APP_ID, ARTIST1, AUTHOR, COPYRIGHT, ICON_NAME, PROGRAM_NAME, TESTER1, TESTER2, WindowConfig,
+    save_config,
 };
 use crate::gui::{
     UserInterface, connect_interactive_widgets, construct_views_from_data, instantiate_graph_cache,
@@ -295,8 +296,12 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 .version(semantic_version.to_string())
                 .copyright(rights)
                 .comments(comments)
-                .authors(vec![AUTHOR.to_string()])
-                .authors(vec![ARTIST1.to_string(), ARTIST2.to_string()])
+                .authors(vec![
+                    AUTHOR.to_string(),
+                    ARTIST1.to_string(),
+                    TESTER1.to_string(),
+                    TESTER2.to_string(),
+                ])
                 .build();
             dialog.present();
         }
