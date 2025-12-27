@@ -433,10 +433,56 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article">
 <div id="header">
 <h1>SiliconSneaker2 User Documentation v0.11.0-alpha</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_program_purpose">1. Program Purpose</a>
+<ul class="sectlevel2">
+<li><a href="#_feature_summary">1.1. Feature Summary</a></li>
+<li><a href="#_history">1.2. History</a></li>
+</ul>
+</li>
+<li><a href="#_installation">2. Installation</a>
+<ul class="sectlevel2">
+<li><a href="#_installing_on_windows64_bit">2.1. Installing on Windows(64 bit)</a></li>
+<li><a href="#_installing_on_debian_linux64_bit">2.2. Installing on Debian Linux(64 bit)</a></li>
+</ul>
+</li>
+<li><a href="#_making_fit_files_available_on_a_pc">3. Making FIT files Available On a PC</a>
+<ul class="sectlevel2">
+<li><a href="#_from_a_watch">3.1. From a watch</a></li>
+<li><a href="#_from_an_online_service">3.2. From an online service</a></li>
+</ul>
+</li>
+<li><a href="#_locating_and_starting_the_application">4. Locating and Starting the Application</a></li>
+<li><a href="#_loading_the_fit_file">5. Loading the Fit File</a></li>
+<li><a href="#_usage">6. Usage</a>
+<ul class="sectlevel2">
+<li><a href="#_using_the_application">6.1. Using the application</a></li>
+<li><a href="#_troubleshooting">6.2. Troubleshooting</a></li>
+<li><a href="#_ending_the_application">6.3. Ending the application</a></li>
+</ul>
+</li>
+<li><a href="#_uninstall">7. Uninstall</a>
+<ul class="sectlevel2">
+<li><a href="#_windows">7.1. Windows</a></li>
+<li><a href="#_debian_linux">7.2. Debian Linux</a></li>
+</ul>
+</li>
+<li><a href="#_online_support">8. Online Support</a>
+<ul class="sectlevel2">
+<li><a href="#_issues">8.1. Issues</a></li>
+<li><a href="#_enhancements">8.2. Enhancements</a></li>
+</ul>
+</li>
+<li><a href="#_license">9. License</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
 <div id="preamble">
@@ -512,7 +558,7 @@ much of the flavor of the original but makes some new design choices.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Important</div>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -620,13 +666,12 @@ double-click on the setup routine to start.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_installing_on_gnulinux64_bit">2.2. Installing on GNU/Linux(64 bit)</h3>
+<h3 id="_installing_on_debian_linux64_bit">2.2. Installing on Debian Linux(64 bit)</h3>
 <div class="paragraph">
-<p>As of this writing, there is no are no compiled binaries available. See below for an example of compiling the program from source on Debian Linux.</p>
+<p>As of this writing, there is a compiled binaries available. See below for an example of installing the program from the compiled binary on Debian Linux.</p>
 </div>
-<div class="paragraph">
-<p>A desktop application menu link will be created (under Accessories) to start SiliconSneaker2.</p>
-</div>
+<div class="sect3">
+<h4 id="_from_source">2.2.1. From source</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-console" data-lang="console"># $ sudo apt install git cargo rustc pkg-config libglib2.0-dev libcairo2-dev libgdk-pixbuf-2.0-dev libpango1.0-dev libgraphene-1.0-dev libgtk-4-dev libshumate-dev
@@ -653,7 +698,17 @@ $ ./target/release/siliconsneaker2
 &lt;gui loads&gt;</code></pre>
 </div>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_from_a_compiled_binary">2.2.2. From a compiled binary</h4>
+<div class="imageblock">
+<div class="content">
+<img src="Linux%20installation.png" alt="Linux installation">
+</div>
+<div class="title">Figure 9. Installation on Linux from the terminal</div>
+</div>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 </div>
@@ -692,7 +747,7 @@ configuration.</p>
 <div class="content">
 <img src="GarminMounted.png" alt="GarminMounted">
 </div>
-<div class="title">Figure 9. A connected watch in the Windows file manager.</div>
+<div class="title">Figure 10. A connected watch in the Windows file manager.</div>
 </div>
 <div class="ulist">
 <ul>
@@ -707,7 +762,7 @@ seen in the following picture.</p>
 <div class="content">
 <img src="Nautilus.png" alt="Nautilus">
 </div>
-<div class="title">Figure 10. A connected watch in the Nautilus file manager on Gnome(Linux).</div>
+<div class="title">Figure 11. A connected watch in the Nautilus file manager on Gnome(Linux).</div>
 </div>
 <div class="ulist">
 <ul>
@@ -751,7 +806,7 @@ given here will be, by necessity, incomplete. Additional information gladly acce
 <div class="content">
 <img src="Strava.png" alt="Strava">
 </div>
-<div class="title">Figure 11. Exporting a Fit file from Strava.</div>
+<div class="title">Figure 12. Exporting a Fit file from Strava.</div>
 </div>
 </div>
 <div class="sect3">
@@ -767,7 +822,7 @@ given here will be, by necessity, incomplete. Additional information gladly acce
 <div class="content">
 <img src="GarminConnect.png" alt="GarminConnect">
 </div>
-<div class="title">Figure 12. Exporting a Fit file from Garmin Connect..</div>
+<div class="title">Figure 13. Exporting a Fit file from Garmin Connect..</div>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -788,13 +843,13 @@ Click it to start the program.</p>
 <div class="content">
 <img src="SiliconSneaker2_Install8.png" alt="SiliconSneaker2 Install8">
 </div>
-<div class="title">Figure 13. Start Menu item</div>
+<div class="title">Figure 14. Start Menu item</div>
 </div>
 <div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<div class="title">Important</div>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -811,7 +866,7 @@ Click it to start the program.</p>
 <div class="content">
 <img src="hostage.jpg" alt="hostage">
 </div>
-<div class="title">Figure 14. Windows Defender warning about an unrecognized application.</div>
+<div class="title">Figure 15. Windows Defender warning about an unrecognized application.</div>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -828,19 +883,19 @@ Side note: SiliconSneaker2 has only read access to the FIT file and cannot chang
 <div class="content">
 <img src="Siliconsneaker_Opening.png" alt="Siliconsneaker Opening">
 </div>
-<div class="title">Figure 15. Initial program screen. Click on the Open button to load a Fit file.</div>
+<div class="title">Figure 16. Initial program screen. Click on the Open button to load a Fit file.</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="Siliconsneaker_Load.png" alt="Siliconsneaker Load">
 </div>
-<div class="title">Figure 16. Selecting a Fit file to load.</div>
+<div class="title">Figure 17. Selecting a Fit file to load.</div>
 </div>
 <div class="admonitionblock tip">
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -856,13 +911,13 @@ to select your preferred unit system.  The preferred unit system will also be re
 <div class="content">
 <img src="Siliconsneaker_Scrunched.png" alt="Siliconsneaker Scrunched">
 </div>
-<div class="title">Figure 17. Don&#8217;t panic! Resize the window and carry on.</div>
+<div class="title">Figure 18. Don&#8217;t panic! Resize the window and carry on.</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="Siliconsneaker_Resized.png" alt="Siliconsneaker Resized">
 </div>
-<div class="title">Figure 18. O.K. that&#8217;s better.  We&#8217;re up and running. Goodbye Mr. Bear.</div>
+<div class="title">Figure 19. O.K. that&#8217;s better.  We&#8217;re up and running. Goodbye Mr. Bear.</div>
 </div>
 <div class="paragraph">
 <p>At this point, explore the interface.  Enjoy.</p>
@@ -879,7 +934,7 @@ to select your preferred unit system.  The preferred unit system will also be re
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -894,7 +949,7 @@ useful tooltips describing the function of the interface widgets.  Let them guid
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -914,7 +969,7 @@ edge to restore the view within it.  Similarly the Summary and Graph panes
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -931,7 +986,7 @@ required sensor to supply the data.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -946,7 +1001,7 @@ page up and page down keys control the movement from the keyboard.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -960,7 +1015,7 @@ page up and page down keys control the movement from the keyboard.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -974,7 +1029,7 @@ page up and page down keys control the movement from the keyboard.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -989,7 +1044,7 @@ the newly selected unit system.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -1007,7 +1062,7 @@ map will change to something indicate the holiday.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -1027,7 +1082,7 @@ activities in the same location.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -1042,7 +1097,7 @@ out is often enough to make this happen.  Alternatively, resize the map pane.</p
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="paragraph">
@@ -1065,6 +1120,8 @@ out is often enough to make this happen.  Alternatively, resize the map pane.</p
 <div class="sect1">
 <h2 id="_uninstall">7. Uninstall</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_windows">7.1. Windows</h3>
 <div class="paragraph">
 <p>When you installed the program a link was created in the start-menu to uninstall.</p>
 </div>
@@ -1072,21 +1129,34 @@ out is often enough to make this happen.  Alternatively, resize the map pane.</p
 <div class="content">
 <img src="SiliconSneaker2_UnInstall1.png" alt="SiliconSneaker2 UnInstall1">
 </div>
-<div class="title">Figure 19. Initial uninstallation screen</div>
+<div class="title">Figure 20. Initial uninstallation screen</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="SiliconSneaker2_UnInstall2.png" alt="SiliconSneaker2 UnInstall2">
 </div>
-<div class="title">Figure 20. Click the uninstall button to proceed.</div>
+<div class="title">Figure 21. Click the uninstall button to proceed.</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="SiliconSneaker2_UnInstall3.png" alt="SiliconSneaker2 UnInstall3">
 </div>
-<div class="title">Figure 21. Goodbye, we&#8217;ll miss you.</div>
+<div class="title">Figure 22. Goodbye, we&#8217;ll miss you.</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debian_linux">7.2. Debian Linux</h3>
+<div class="paragraph">
+<p>Debian uninstalls are from the terminal using the APT command as root.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="Linux%20uninstallation.png" alt="Linux uninstallation">
+</div>
+<div class="title">Figure 23. Deinstallation on Linux from the terminal</div>
 </div>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1212,7 +1282,7 @@ Copyright (c) libshumate The Gnome Foundation</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-26 19:45:00 -0600
+Last updated 2025-12-26 20:23:04 -0600
 </div>
 </div>
 </body>
