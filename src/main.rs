@@ -37,6 +37,8 @@ use crate::gui::{
     instantiate_map_cache, instantiate_ui,
 };
 use crate::i18n::tr;
+#[cfg(target_os = "windows")]
+use gtk4::Settings;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
@@ -49,6 +51,10 @@ use std::fs::File;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::rc::Rc;
+#[cfg(target_os = "windows")]
+use winreg::RegKey;
+#[cfg(target_os = "windows")]
+use winreg::enums::*;
 
 // Only God and I knew what this was doing when I wrote it.
 // Now only God knows.
@@ -62,7 +68,52 @@ fn main() {
     app.connect_open(|app, files, _| {
         build_gui(app, files, "");
     });
+
+    // Handle themeing
+    // Start the Registry Monitor
+    #[cfg(target_os = "windows")]
+    {
+        let gtk_settings = Settings::default().unwrap();
+        watch_system_theme(gtk_settings);
+    }
+
     app.run();
+}
+
+// Monitor a registry key on Windows to switch themes (e.g. light/dark)
+#[cfg(target_os = "windows")]
+fn watch_system_theme(gtk_settings: Settings) {
+    // We use glib::MainContext::channel to safely communicate
+    // from the background thread to the GTK main thread.
+    let (sender, receiver) = glib::MainContext::channel(glib::Priority::DEFAULT);
+
+    thread::spawn(move || {
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        let path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+
+        let mut last_value: u32 = 2; // Initialize with a dummy value
+
+        loop {
+            if let Ok(key) = hkcu.open_subkey(path) {
+                // AppsUseLightTheme: 0 = Dark, 1 = Light
+                if let Ok(val) = key.get_value::<u32, _>("AppsUseLightTheme") {
+                    if val != last_value {
+                        let is_dark = val == 0;
+                        let _ = sender.send(is_dark);
+                        last_value = val;
+                    }
+                }
+            }
+            // Polling every 1 second is very lightweight for the registry
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    // This listener runs on the MAIN thread
+    receiver.attach(None, move |is_dark| {
+        gtk_settings.set_gtk_application_prefer_dark_theme(is_dark);
+        glib::ControlFlow::Continue
+    });
 }
 
 // Create and present a modal MessageDialog when supplied a text string.
