@@ -17,6 +17,7 @@ use gtk4::{
     Adjustment, Button, DrawingArea, DropDown, Frame, Image, Label, Orientation, Scale,
     ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
 };
+use libadwaita::prelude::*;
 use libadwaita::{Application, ApplicationWindow};
 use libshumate::prelude::*;
 use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
@@ -230,7 +231,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.units_widget
         .set_tooltip_text(Some(&tr("TOOLTIP_UNITS_DROPDOWN", None)));
     ui.win.set_icon_name(Some(ICON_NAME));
-    ui.win.set_child(Some(&ui.outer_box));
+    ui.win.set_content(Some(&ui.outer_box));
     ui.button_box.append(&ui.btn);
     ui.button_box.append(&ui.units_widget);
     ui.button_box.append(&ui.about_btn);
