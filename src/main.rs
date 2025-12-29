@@ -43,7 +43,7 @@ use gtk4::{
     ButtonsType, FileChooserAction, FileChooserNative, License, MessageDialog, MessageType,
     ResponseType,
 };
-use libadwaita::{Application, StyleManager};
+use libadwaita::{Application, WindowTitle};
 use semver::{BuildMetadata, Prerelease};
 use std::error::Error;
 use std::fs::File;
@@ -106,7 +106,8 @@ fn update_window_title(ui: &UserInterface, path_str: &str) {
     pfx.push_str(":");
     pfx.push_str(" ");
     pfx.push_str(&path_str);
-    ui.win.set_title(Some(&pfx.to_string()));
+    let window_title = WindowTitle::new(&pfx.to_string(), "");
+    ui.header_bar.set_title_widget(Some(&window_title));
 }
 
 // Get the file handle from the command line.
@@ -196,10 +197,6 @@ fn build_gui_no_files(app: &Application) {
 }
 // Instantiate the user-interface views and handle callbacks.
 fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
-    // Handle light/dark modes.
-    let style_manager = StyleManager::default();
-    style_manager.set_color_scheme(libadwaita::ColorScheme::PreferDark);
-
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
     // Read configuration file and default values.

@@ -14,11 +14,11 @@ use gtk4::ffi::GTK_STYLE_PROVIDER_PRIORITY_APPLICATION;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Adjustment, Button, DrawingArea, DropDown, Frame, Image, Label, Orientation, Scale,
+    Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, Orientation, Scale,
     ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
 };
 use libadwaita::prelude::*;
-use libadwaita::{Application, ApplicationWindow};
+use libadwaita::{Application, ApplicationWindow, WindowTitle};
 use libshumate::prelude::*;
 use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
 use plotters::prelude::*;
@@ -35,6 +35,7 @@ use std::rc::Rc;
 pub struct UserInterface {
     pub settings_file: String,
     pub win: ApplicationWindow,
+    pub header_bar: HeaderBar,
     pub outer_box: gtk4::Box,
     pub button_box: gtk4::Box,
     pub main_pane: gtk4::Paned,
@@ -74,6 +75,9 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
         win: ApplicationWindow::builder()
             .application(app)
             .title(PROGRAM_NAME)
+            .build(),
+        header_bar: HeaderBar::builder()
+            .title_widget(&WindowTitle::new(PROGRAM_NAME, ""))
             .build(),
         // Main horizontal container to hold the two frames side-by-side,
         // outer box wraps main_pane.
@@ -205,6 +209,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
         &provider,
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION.try_into().unwrap(),
     );
+    ui.outer_box.append(&ui.header_bar);
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
     ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
     ui.about_btn.set_label(&ui.about_label);
