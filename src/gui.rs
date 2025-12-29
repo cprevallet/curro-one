@@ -14,9 +14,10 @@ use gtk4::ffi::GTK_STYLE_PROVIDER_PRIORITY_APPLICATION;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Adjustment, Application, ApplicationWindow, Button, DrawingArea, DropDown, Frame, Image, Label,
-    Orientation, Scale, ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
+    Adjustment, Button, DrawingArea, DropDown, Frame, Image, Label, Orientation, Scale,
+    ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
 };
+use libadwaita::{Application, ApplicationWindow};
 use libshumate::prelude::*;
 use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
 use plotters::prelude::*;

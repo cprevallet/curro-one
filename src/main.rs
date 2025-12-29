@@ -40,9 +40,10 @@ use crate::i18n::tr;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Application, ButtonsType, FileChooserAction, FileChooserNative, License, MessageDialog,
-    MessageType, ResponseType,
+    ButtonsType, FileChooserAction, FileChooserNative, License, MessageDialog, MessageType,
+    ResponseType,
 };
+use libadwaita::{Application, StyleManager};
 use semver::{BuildMetadata, Prerelease};
 use std::error::Error;
 use std::fs::File;
@@ -195,6 +196,10 @@ fn build_gui_no_files(app: &Application) {
 }
 // Instantiate the user-interface views and handle callbacks.
 fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
+    // Handle light/dark modes.
+    let style_manager = StyleManager::default();
+    style_manager.set_color_scheme(libadwaita::ColorScheme::PreferDark);
+
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
     // Read configuration file and default values.
