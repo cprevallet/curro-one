@@ -563,8 +563,9 @@ fn build_individual_graph(
     // // And we can draw something in the drawing area
     // We need to clone plotvals each time we make a call to LineSeries and PointSeries
     //    let _ = chart.draw_series(LineSeries::new(plotvals.clone(), color));
-    let _ = chart
-        .draw_series(AreaSeries::new(plotvals.clone(), 0.0, color.mix(0.4)).border_style(color));
+    let _ = chart.draw_series(
+        AreaSeries::new(plotvals.clone(), 0.0, color.mix(0.1)).border_style(color.mix(0.4)),
+    );
     // Calculate the hairline.
     let idx = (curr_adj.value() * (plotvals.len() as f64 - 1.0)).trunc() as usize;
     if idx > 0 && idx < plotvals.len() - 1 {
@@ -589,7 +590,7 @@ fn build_individual_graph(
                 1,
                 4,
                 ShapeStyle {
-                    color: BLACK.mix(1.0),
+                    color: GREY_600.mix(1.0),
                     filled: false,
                     stroke_width: 2,
                 },
