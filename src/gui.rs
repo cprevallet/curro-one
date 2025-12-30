@@ -22,9 +22,7 @@ use libadwaita::{Application, ApplicationWindow, WindowTitle};
 use libshumate::prelude::*;
 use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
 use plotters::prelude::*;
-use plotters::style::full_palette::BROWN;
-use plotters::style::full_palette::CYAN;
-use plotters::style::full_palette::GREY_600;
+use plotters::style::full_palette::{BROWN, CYAN, GREY_600, GREY_800};
 use plotters_cairo::CairoBackend;
 use std::path::Path;
 use std::rc::Rc;
@@ -527,7 +525,7 @@ fn build_individual_graph(
     curr_adj: &Adjustment,
     a: &plotters::drawing::DrawingArea<CairoBackend<'_>, plotters::coord::Shift>,
 ) {
-    let caption_style = ("sans-serif", 16, &GREY_600).into_text_style(a);
+    let caption_style = ("sans-serif", 16, &GREY_800).into_text_style(a);
     let mut chart = ChartBuilder::on(&a)
         // Set the caption of the chart
         .caption(caption, caption_style)
@@ -538,7 +536,7 @@ fn build_individual_graph(
         // Finally attach a coordinate on the drawing area and make a chart context
         .build_cartesian_2d(plot_range.clone().0, plot_range.clone().1)
         .unwrap();
-    let axis_text_style = ("sans-serif", 10, &GREY_600).into_text_style(a);
+    let axis_text_style = ("sans-serif", 10, &GREY_800).into_text_style(a);
     let light_line_style = ShapeStyle {
         color: color.mix(0.05),
         filled: false,
@@ -573,7 +571,7 @@ fn build_individual_graph(
     // We need to clone plotvals each time we make a call to LineSeries and PointSeries
     //    let _ = chart.draw_series(LineSeries::new(plotvals.clone(), color));
     let _ = chart.draw_series(
-        AreaSeries::new(plotvals.clone(), 0.0, color.mix(0.1)).border_style(color.mix(0.4)),
+        AreaSeries::new(plotvals.clone(), 0.0, color.mix(0.4)).border_style(color.mix(0.8)),
     );
     // Calculate the hairline.
     let idx = (curr_adj.value() * (plotvals.len() as f64 - 1.0)).trunc() as usize;
