@@ -23,6 +23,7 @@ use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
 use plotters::prelude::*;
 use plotters::style::full_palette::BROWN;
 use plotters::style::full_palette::CYAN;
+use plotters::style::full_palette::GREY_600;
 use plotters_cairo::CairoBackend;
 use std::path::Path;
 use std::rc::Rc;
@@ -412,7 +413,6 @@ fn draw_graphs(
     let root = plotters_cairo::CairoBackend::new(&cr, (width as u32, height as u32))
         .unwrap()
         .into_drawing_area();
-    let _ = root.fill(&WHITE);
     let areas = root.split_evenly((2, 3));
     // Declare and initialize.
     for (a, idx) in areas.iter().zip(1..) {
@@ -518,9 +518,10 @@ fn build_individual_graph(
     curr_adj: &Adjustment,
     a: &plotters::drawing::DrawingArea<CairoBackend<'_>, plotters::coord::Shift>,
 ) {
+    let caption_style = ("sans-serif", 16, &GREY_600).into_text_style(a);
     let mut chart = ChartBuilder::on(&a)
         // Set the caption of the chart
-        .caption(caption, ("sans-serif", 16).into_font())
+        .caption(caption, caption_style)
         // Set the size of the label region
         .x_label_area_size(40)
         .y_label_area_size(60)
@@ -528,14 +529,36 @@ fn build_individual_graph(
         // Finally attach a coordinate on the drawing area and make a chart context
         .build_cartesian_2d(plot_range.clone().0, plot_range.clone().1)
         .unwrap();
+    let axis_text_style = ("sans-serif", 10, &GREY_600).into_text_style(a);
+    let light_line_style = ShapeStyle {
+        color: color.mix(0.05),
+        filled: false,
+        stroke_width: 1,
+    };
+    let bold_line_style = ShapeStyle {
+        color: color.mix(0.10),
+        filled: false,
+        stroke_width: 2,
+    };
+    let axis_style = ShapeStyle {
+        // color: color.mix(0.3),
+        color: GREY_600.mix(1.0),
+        filled: false,
+        stroke_width: 2,
+    };
     let _ = chart
         .configure_mesh()
         // We can customize the maximum number of labels allowed for each axis
         .x_labels(5)
+        .x_label_style(axis_text_style.clone())
         .y_labels(5)
+        .y_label_style(axis_text_style.clone())
         .x_desc(xlabel)
         .y_desc(ylabel)
         .y_label_formatter(&y_formatter)
+        .light_line_style(light_line_style)
+        .bold_line_style(bold_line_style)
+        .axis_style(axis_style)
         .draw();
     // // And we can draw something in the drawing area
     // We need to clone plotvals each time we make a call to LineSeries and PointSeries
@@ -568,18 +591,19 @@ fn build_individual_graph(
                 ShapeStyle {
                     color: BLACK.mix(1.0),
                     filled: false,
-                    stroke_width: 1,
+                    stroke_width: 2,
                 },
             ))
             .unwrap()
             .label(mylabel);
 
+        let label_text_style = ("sans-serif", 10, &GREY_600).into_text_style(a);
         chart
             .configure_series_labels()
             .position(SeriesLabelPosition::UpperLeft)
             .margin(5)
             .legend_area_size(0)
-            .label_font(("Calibri", 10))
+            .label_font(label_text_style)
             .draw()
             .unwrap();
     }
