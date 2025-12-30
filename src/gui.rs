@@ -10,7 +10,6 @@ use crate::i18n::tr;
 use directories::BaseDirs;
 use fitparser::{FitDataField, FitDataRecord, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
-use gtk4::ffi::GTK_STYLE_PROVIDER_PRIORITY_APPLICATION;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
