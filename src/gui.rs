@@ -200,15 +200,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .build(),
         da: DrawingArea::builder().width_request(400).build(),
     };
-    let provider = gtk4::CssProvider::new();
-    let css_data =
-        "textview { font: 14px monospace; font-weight: 500; color: black; background: white; }";
-    provider.load_from_data(css_data);
-    gtk4::style_context_add_provider_for_display(
-        &gdk::Display::default().expect("Could not get default display."),
-        &provider,
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION.try_into().unwrap(),
-    );
     ui.outer_box.append(&ui.header_bar);
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
     ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
