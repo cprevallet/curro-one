@@ -282,6 +282,25 @@ pub fn construct_views_from_data(
     mc: &Rc<MapCache>,
     gc: &Rc<GraphCache>,
 ) {
+    // let gesture = gtk4::GestureClick::new();
+    let gesture = gtk4::GestureDrag::new();
+    ui.da.add_controller(gesture.clone());
+    // gesture.connect_pressed(move |gesture, n_press, x, y| {
+    //     // x and y are the pixel coordinates relative to the DrawingArea
+    //     println!("Clicked at pixels: x={}, y={}", x, y);
+    //     // Logic to convert pixels to graph values goes here
+    // });
+    gesture.connect_drag_begin(move |gesture, x, y| {
+        // x and y are the pixel coordinates relative to the DrawingArea
+        println!("Drag begin at pixels: x={}, y={}", x, y);
+        // Logic to convert pixels to graph values goes here
+    });
+    gesture.connect_drag_end(move |gesture, dx, dy| {
+        // x and y are the pixel coordinates relative to the DrawingArea
+        println!("Drag end at pixels: dx={}, dy={}", dx, dy);
+        // Logic to convert pixels to graph values goes here
+    });
+
     // 1. Instantiate embedded widgets based on parsed fit data.
     update_map_graph_and_summary_widgets(&ui, &data, &mc, &gc);
 
