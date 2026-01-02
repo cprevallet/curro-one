@@ -284,7 +284,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 });
             // Set the semantic_version variable for the dialog.
             semantic_version.build = build;
-            semantic_version.pre = Prerelease::new("alpha.1").unwrap();
+            semantic_version.pre = Prerelease::new("beta.1").unwrap();
             let comments: String = tr("ABOUT_DIALOG_COMMENT", None);
             let copyright: String = tr("COPYRIGHT", None);
             let rights: String = copyright.to_owned() + &COPYRIGHT;
