@@ -1020,11 +1020,14 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
             let result: Result<f64, _> = fld.value().clone().try_into();
             match result {
                 Ok(val) => {
-                    let val_cvt = cvt_pace(val as f32, &user_unit);
+                    let decimal_val = cvt_pace(val as f32, &user_unit);
+                    let mins = decimal_val.trunc();
+                    let secs = decimal_val.fract() * 60.0;
+                    let val_cvt = format!("{:02.0}:{:02.0}", mins, secs);
                     match user_unit {
                         Units::US => {
                             return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
+                                "{:<30}: {:<} {:<}\n",
                                 pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_PACE_US", None),
@@ -1032,14 +1035,14 @@ fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<Stri
                         }
                         Units::Metric => {
                             return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
+                                "{:<30}: {:<} {:<}\n",
                                 pretty_field(fld),
                                 val_cvt,
                                 tr("UNIT_PACE_METRIC", None),
                             ));
                         }
                         Units::None => {
-                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
+                            return Some(format!("{:<30}: {:<} {:<}\n", fld.name(), val_cvt, ""));
                         }
                     }
                 }
