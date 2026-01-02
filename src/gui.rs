@@ -1066,25 +1066,13 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
     let mut lap_str: String;
     for item in data {
         match item.kind() {
-            MesgNum::Session | MesgNum::Lap => {
+            MesgNum::Session => {
                 // print all the data records in FIT file
-                if item.kind() == MesgNum::Session {
-                    ui.text_buffer.insert(&mut end, "\n");
-                    ui.text_buffer
-                        .insert(&mut end, &tr("SUMMARY_SESSION_HEADER", None));
-                    ui.text_buffer.insert(&mut end, "\n");
-                }
-                if item.kind() == MesgNum::Lap {
-                    lap_index = lap_index + 1;
-                    let lap_name = &tr("SUMMARY_LAP_HEADER", None);
-                    lap_str = format!(
-                        "------------------------------ {} {}-----------------------------------\n",
-                        lap_name, lap_index
-                    );
-                    ui.text_buffer.insert(&mut end, "\n");
-                    ui.text_buffer.insert(&mut end, &lap_str);
-                    ui.text_buffer.insert(&mut end, "\n");
-                }
+                ui.text_buffer.insert(&mut end, "\n");
+                ui.text_buffer
+                    .insert(&mut end, &tr("SUMMARY_SESSION_HEADER", None));
+                ui.text_buffer.insert(&mut end, "\n");
+                ui.text_buffer.insert(&mut end, "\n");
                 // Retrieve the FitDataField struct.
                 for fld in item.fields().iter() {
                     let value_str = format_string_for_field(fld, &user_unit);
@@ -1101,6 +1089,7 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
         ui.text_buffer.insert(&mut end, "\n");
         ui.text_buffer
             .insert(&mut end, &tr("SUMMARY_HR_ZONE_HEADER", None));
+        ui.text_buffer.insert(&mut end, "\n");
         ui.text_buffer.insert(&mut end, "\n");
         for (z, val) in zone_times.iter().enumerate() {
             let val_cvt = cvt_elapsed_time(*val as f32);
@@ -1130,6 +1119,29 @@ fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
         }
         ui.text_buffer.insert(&mut end, "\n");
     };
+    for item in data {
+        match item.kind() {
+            MesgNum::Lap => {
+                lap_index = lap_index + 1;
+                let lap_name = &tr("SUMMARY_LAP_HEADER", None);
+                lap_str = format!(
+                    "------------------------------ {} {} ----------------------------------\n",
+                    lap_name, lap_index
+                );
+                ui.text_buffer.insert(&mut end, "\n");
+                ui.text_buffer.insert(&mut end, &lap_str);
+                ui.text_buffer.insert(&mut end, "\n");
+                // Retrieve the FitDataField struct.
+                for fld in item.fields().iter() {
+                    let value_str = format_string_for_field(fld, &user_unit);
+                    if value_str.is_some() {
+                        ui.text_buffer.insert(&mut end, &value_str.unwrap());
+                    }
+                }
+            }
+            _ => print!("{}", ""), // matches other patterns
+        }
+    }
 }
 
 // #####################################################################
