@@ -36,13 +36,17 @@ fn create_arrow_controls(adjustment: &Adjustment) -> gtk4::Box {
     // 1. Create the container
     let container = gtk4::Box::builder()
         .orientation(Orientation::Vertical)
-        .width_request(50)
+        .width_request(30)
+        .margin_top(5)
+        .margin_bottom(5)
+        .margin_start(5)
+        .margin_end(5)
         .css_name("arrow-controls")
         .build();
 
     // 2. Create the Up button
     let up_button = Button::from_icon_name("list-add-symbolic");
-    up_button.set_width_request(50);
+    up_button.set_width_request(10);
     let adj_clone = adjustment.clone();
     up_button.connect_clicked(move |_| {
         let new_val = (adj_clone.value() + adj_clone.step_increment()).min(adj_clone.upper());
@@ -51,13 +55,36 @@ fn create_arrow_controls(adjustment: &Adjustment) -> gtk4::Box {
 
     // 3. Create the Down button
     let down_button = Button::from_icon_name("list-remove-symbolic");
-    down_button.set_width_request(50);
+    down_button.set_width_request(10);
     let adj_clone = adjustment.clone();
     down_button.connect_clicked(move |_| {
         let new_val = (adj_clone.value() - adj_clone.step_increment()).max(adj_clone.lower());
         adj_clone.set_value(new_val);
     });
 
+    let provider = gtk4::CssProvider::new();
+    provider.load_from_data(
+        "
+    .arrow-controls {
+        opacity: 0.1; /* Almost hidden by default */
+        transition: opacity 0.5s ease-in-out; /* Smooth fade animation */
+        background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    /* This class will be toggled by Rust code on hover */
+    .arrow-controls.visible {
+        opacity: 1.0;
+    }
+
+    .arrow-controls button {
+        background: transparent;
+        color: white;
+        border: none;
+    }
+",
+    );
     // 4. Assemble
     container.append(&up_button);
     container.append(&down_button);
@@ -224,7 +251,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .build(),
         da: DrawingArea::builder()
             .width_request(400)
-            .margin_end(30)
+            .margin_end(40)
             .build(),
         overlay: Overlay::builder().build(),
     };
@@ -267,6 +294,8 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.button_box.append(&ui.units_widget);
     ui.button_box.append(&ui.controls_box);
     ui.y_zoom_box = create_arrow_controls(&ui.y_zoom_adj);
+    ui.y_zoom_box
+        .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
     ui.button_box.append(&ui.about_btn);
