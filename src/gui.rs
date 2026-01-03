@@ -14,8 +14,9 @@ use gtk4::ffi::GTK_STYLE_PROVIDER_PRIORITY_APPLICATION;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, Orientation,
-    Overlay, Scale, ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
+    Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, MenuButton,
+    Orientation, Overlay, Popover, Scale, ScrolledWindow, StringList, StringObject, TextBuffer,
+    TextView, gdk,
 };
 use libadwaita::prelude::*;
 use libadwaita::{Application, ApplicationWindow, WindowTitle};
@@ -97,6 +98,9 @@ pub struct UserInterface {
     pub settings_file: String,
     pub win: ApplicationWindow,
     pub header_bar: HeaderBar,
+    pub menu_button: gtk4::MenuButton,
+    pub popover: gtk4::Popover,
+    pub menu_box: gtk4::Box,
     pub outer_box: gtk4::Box,
     pub button_box: gtk4::Box,
     pub main_pane: gtk4::Paned,
@@ -138,6 +142,18 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .build(),
         header_bar: HeaderBar::builder()
             .title_widget(&WindowTitle::new(PROGRAM_NAME, ""))
+            .build(),
+        menu_button: MenuButton::builder()
+            .icon_name("open-menu-symbolic")
+            .build(),
+        popover: Popover::builder().build(),
+        menu_box: gtk4::Box::builder()
+            .orientation(Orientation::Vertical)
+            .spacing(10)
+            .margin_start(10)
+            .margin_end(10)
+            .margin_bottom(10)
+            .margin_top(10)
             .build(),
         // Main horizontal container to hold the two frames side-by-side,
         // outer box wraps main_pane.
@@ -263,7 +279,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
         &provider,
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION.try_into().unwrap(),
     );
-    ui.outer_box.append(&ui.header_bar);
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
@@ -273,7 +288,14 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.scrolled_window.set_child(Some(&ui.text_view));
     ui.about_btn
         .set_tooltip_text(Some(&tr("TOOLTIP_ABOUT_BUTTON", None)));
-
+    ui.menu_box.append(&ui.units_widget);
+    ui.menu_box.append(&ui.about_btn);
+    ui.popover.set_autohide(true); // Ensures clicking outside or on the button closes it
+    ui.popover.set_cascade_popdown(true); // Closes nested popovers if any
+    ui.popover.set_child(Some(&ui.menu_box));
+    ui.menu_button.set_popover(Some(&ui.popover));
+    ui.header_bar.pack_end(&ui.menu_button);
+    ui.outer_box.append(&ui.header_bar);
     // Button with icon and label.
     let button_content = gtk4::Box::new(Orientation::Horizontal, 6);
     button_content.set_halign(gtk4::Align::Center);
@@ -291,14 +313,12 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.win.set_icon_name(Some(ICON_NAME));
     ui.win.set_content(Some(&ui.outer_box));
     ui.button_box.append(&ui.btn);
-    ui.button_box.append(&ui.units_widget);
     ui.button_box.append(&ui.controls_box);
     ui.y_zoom_box = create_arrow_controls(&ui.y_zoom_adj);
     ui.y_zoom_box
         .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
-    ui.button_box.append(&ui.about_btn);
     ui.controls_box.append(&ui.curr_pos_scale);
     ui.controls_box.append(&ui.curr_time_label);
     ui.path_layer = Some(add_path_layer_to_map(&ui.map).unwrap());
