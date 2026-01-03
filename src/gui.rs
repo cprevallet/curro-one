@@ -318,7 +318,6 @@ pub fn construct_views_from_data(
     ui.left_frame_pane.set_start_child(Some(&ui.frame_left));
     ui.left_frame_pane.set_end_child(Some(&ui.scrolled_window));
     ui.right_frame_pane.set_start_child(Some(&ui.frame_right));
-    ui.right_frame_pane.set_end_child(Some(&ui.controls_box));
     // Main box contains all of the above plus the graphs.
     ui.main_pane.set_start_child(Some(&ui.left_frame_pane));
     ui.main_pane.set_end_child(Some(&ui.right_frame_pane));
