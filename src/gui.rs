@@ -30,6 +30,41 @@ use std::rc::Rc;
 // #####################################################################
 // ##################### OVERALL UI FUNCTIONS ##########################
 // #####################################################################
+//
+// Create arrow controls for the graph y-axis zoom.
+fn create_arrow_controls(adjustment: &Adjustment) -> gtk4::Box {
+    // 1. Create the container
+    let container = gtk4::Box::builder()
+        .orientation(Orientation::Vertical)
+        .width_request(50)
+        .css_name("arrow-controls")
+        .build();
+
+    // 2. Create the Up button
+    let up_button = Button::from_icon_name("list-add-symbolic");
+    up_button.set_width_request(50);
+    let adj_clone = adjustment.clone();
+    up_button.connect_clicked(move |_| {
+        let new_val = (adj_clone.value() + adj_clone.step_increment()).min(adj_clone.upper());
+        adj_clone.set_value(new_val);
+    });
+
+    // 3. Create the Down button
+    let down_button = Button::from_icon_name("list-remove-symbolic");
+    down_button.set_width_request(50);
+    let adj_clone = adjustment.clone();
+    down_button.connect_clicked(move |_| {
+        let new_val = (adj_clone.value() - adj_clone.step_increment()).max(adj_clone.lower());
+        adj_clone.set_value(new_val);
+    });
+
+    // 4. Assemble
+    container.append(&up_button);
+    container.append(&down_button);
+
+    container
+}
+
 // Widgets used for the graphical user interface.
 pub struct UserInterface {
     pub settings_file: String,
@@ -55,7 +90,7 @@ pub struct UserInterface {
     pub curr_pos_scale: Scale,
     pub y_zoom_adj: Adjustment,
     pub x_zoom_adj: Adjustment,
-    pub y_zoom_scale: Scale,
+    pub y_zoom_box: gtk4::Box,
     pub curr_time_label: Label,
     pub controls_box: gtk4::Box,
     pub uom: StringList,
@@ -162,13 +197,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .page_increment(0.1)
             .value(1.0)
             .build(),
-        y_zoom_scale: Scale::builder()
-            .orientation(Orientation::Vertical)
-            .draw_value(false)
-            .vexpand(false)
-            .width_request(10)
-            .height_request(30)
-            .build(),
+        y_zoom_box: gtk4::Box::builder().build(),
         curr_time_label: Label::new(Some("")),
         controls_box: gtk4::Box::builder()
             .orientation(Orientation::Horizontal)
@@ -209,7 +238,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     );
     ui.outer_box.append(&ui.header_bar);
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
-    ui.y_zoom_scale.set_adjustment(&ui.y_zoom_adj);
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
     ui.text_view.set_buffer(Some(&ui.text_buffer));
@@ -238,6 +266,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.button_box.append(&ui.btn);
     ui.button_box.append(&ui.units_widget);
     ui.button_box.append(&ui.controls_box);
+    ui.y_zoom_box = create_arrow_controls(&ui.y_zoom_adj);
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
     ui.button_box.append(&ui.about_btn);
@@ -249,8 +278,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
 
     ui.curr_pos_scale
         .set_tooltip_text(Some(&tr("TOOLTIP_POSITION_SCALE", None)));
-    ui.y_zoom_scale
-        .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
     ui.frame_left
         .set_tooltip_text(Some(&tr("TOOLTIP_MAP_FRAME", None)));
     ui.frame_right
@@ -268,7 +295,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     set_up_user_defaults(&ui);
     return ui;
 }
-
 // After reading the fit file, display the additional views of the UI.
 pub fn construct_views_from_data(
     ui: &UserInterface,
@@ -279,8 +305,8 @@ pub fn construct_views_from_data(
     // 1. Instantiate embedded widgets based on parsed fit data.
     update_map_graph_and_summary_widgets(&ui, &data, &mc, &gc);
 
-    ui.y_zoom_scale.set_halign(gtk4::Align::End);
-    ui.overlay.add_overlay(&ui.y_zoom_scale); // The top layer
+    ui.y_zoom_box.set_halign(gtk4::Align::End);
+    ui.overlay.add_overlay(&ui.y_zoom_box); // The top layer
     ui.overlay.set_child(Some(&ui.da));
 
     // 2. Connect embedded widgets to their parents.
@@ -332,7 +358,7 @@ pub fn connect_interactive_widgets(
 
     // Hook-up the zoom scale change handler.
     // redraw the graphs when the zoom changes.
-    ui.y_zoom_scale.adjustment().connect_value_changed(clone!(
+    ui.y_zoom_adj.connect_value_changed(clone!(
         #[strong]
         data,
         #[strong]
