@@ -14,8 +14,8 @@ use gtk4::ffi::GTK_STYLE_PROVIDER_PRIORITY_APPLICATION;
 use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
-    Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, Orientation, Scale,
-    ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
+    Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, Orientation,
+    Overlay, Scale, ScrolledWindow, StringList, StringObject, TextBuffer, TextView, gdk,
 };
 use libadwaita::prelude::*;
 use libadwaita::{Application, ApplicationWindow, WindowTitle};
@@ -56,15 +56,14 @@ pub struct UserInterface {
     pub y_zoom_adj: Adjustment,
     pub x_zoom_adj: Adjustment,
     pub y_zoom_scale: Scale,
-    pub curr_pos_label: Label,
     pub curr_time_label: Label,
-    pub y_zoom_label: Label,
     pub controls_box: gtk4::Box,
     pub uom: StringList,
     pub units_widget: DropDown,
     pub about_label: String,
     pub about_btn: Button,
     pub da: DrawingArea,
+    pub overlay: Overlay,
 }
 
 // Instantiate the object holding the widgets (views).
@@ -146,7 +145,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .orientation(Orientation::Horizontal)
             .draw_value(false)
             .vexpand(false)
-            .width_request(120)
+            .width_request(400)
             .height_request(30)
             .build(),
         x_zoom_adj: Adjustment::builder()
@@ -164,19 +163,16 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .value(1.0)
             .build(),
         y_zoom_scale: Scale::builder()
-            .orientation(Orientation::Horizontal)
+            .orientation(Orientation::Vertical)
             .draw_value(false)
             .vexpand(false)
-            .width_request(120)
+            .width_request(10)
             .height_request(30)
             .build(),
-        curr_pos_label: Label::new(Some("🏃‍➡️")),
         curr_time_label: Label::new(Some("")),
-        y_zoom_label: Label::new(Some("🔍")),
-        //        controls_box: gtk4::Box::new(Orientation::Vertical, 10),
         controls_box: gtk4::Box::builder()
-            .orientation(Orientation::Vertical)
-            .width_request(120)
+            .orientation(Orientation::Horizontal)
+            .width_request(500)
             .spacing(10)
             .build(),
         uom: StringList::new(&[&tr("UNITS_METRIC", None), &tr("UNITS_US", None)]),
@@ -197,7 +193,11 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(50)
             .build(),
-        da: DrawingArea::builder().width_request(400).build(),
+        da: DrawingArea::builder()
+            .width_request(400)
+            .margin_end(30)
+            .build(),
+        overlay: Overlay::builder().build(),
     };
     let provider = gtk4::CssProvider::new();
     let css_data = "textview { font: 14px monospace; font-weight: 500;}";
@@ -237,12 +237,10 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.win.set_content(Some(&ui.outer_box));
     ui.button_box.append(&ui.btn);
     ui.button_box.append(&ui.units_widget);
-    ui.button_box.append(&ui.about_btn);
+    ui.button_box.append(&ui.controls_box);
     ui.outer_box.append(&ui.button_box);
     ui.outer_box.append(&ui.main_pane);
-    ui.controls_box.append(&ui.y_zoom_label);
-    ui.controls_box.append(&ui.y_zoom_scale);
-    ui.controls_box.append(&ui.curr_pos_label);
+    ui.button_box.append(&ui.about_btn);
     ui.controls_box.append(&ui.curr_pos_scale);
     ui.controls_box.append(&ui.curr_time_label);
     ui.path_layer = Some(add_path_layer_to_map(&ui.map).unwrap());
@@ -251,11 +249,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
 
     ui.curr_pos_scale
         .set_tooltip_text(Some(&tr("TOOLTIP_POSITION_SCALE", None)));
-    ui.curr_pos_label
-        .set_tooltip_text(Some(&tr("TOOLTIP_POSITION_SCALE", None)));
     ui.y_zoom_scale
-        .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
-    ui.y_zoom_label
         .set_tooltip_text(Some(&tr("TOOLTIP_ZOOM_SCALE", None)));
     ui.frame_left
         .set_tooltip_text(Some(&tr("TOOLTIP_MAP_FRAME", None)));
@@ -285,8 +279,12 @@ pub fn construct_views_from_data(
     // 1. Instantiate embedded widgets based on parsed fit data.
     update_map_graph_and_summary_widgets(&ui, &data, &mc, &gc);
 
+    ui.y_zoom_scale.set_halign(gtk4::Align::End);
+    ui.overlay.add_overlay(&ui.y_zoom_scale); // The top layer
+    ui.overlay.set_child(Some(&ui.da));
+
     // 2. Connect embedded widgets to their parents.
-    ui.da_window.set_child(Some(&ui.da));
+    ui.da_window.set_child(Some(&ui.overlay));
     ui.frame_right.set_child(Some(&ui.da_window));
 
     ui.frame_left.set_child(Some(&ui.map));
