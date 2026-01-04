@@ -128,6 +128,8 @@ pub struct UserInterface {
     pub controls_box: gtk4::Box,
     pub uom: StringList,
     pub units_widget: DropDown,
+    pub tile_source: StringList,
+    pub tile_source_widget: DropDown,
     pub about_label: String,
     pub about_btn: Button,
     pub da: DrawingArea,
@@ -258,6 +260,15 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(100)
             .build(),
+        tile_source: StringList::new(&["OpenStreetMap", "MapTiler-Satellite", "MapTiler-Outdoor"]),
+        tile_source_widget: DropDown::builder()
+            .margin_top(5)
+            .margin_bottom(5)
+            .margin_start(5)
+            .margin_end(5)
+            .height_request(30)
+            .width_request(100)
+            .build(),
         about_label: tr("ABOUT_BUTTON_LABEL", None),
         about_btn: Button::builder()
             .margin_top(5)
@@ -284,6 +295,9 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.curr_pos_scale.set_adjustment(&ui.curr_pos_adj);
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
+    ui.tile_source_widget.set_model(Some(&ui.tile_source));
+    // TODO remove this when the graphical interface is ready.
+    ui.tile_source_widget.set_selected(0);
     ui.text_view.set_buffer(Some(&ui.text_buffer));
     ui.text_view
         .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
@@ -730,6 +744,20 @@ pub struct TileSource {
     pub key: Option<String>,
 }
 
+// Return a string describing the map tile provider.
+pub fn get_tile_source_provider(tile_source_widget: &DropDown) -> Option<String> {
+    if tile_source_widget.model().is_some() {
+        let model = tile_source_widget.model().unwrap();
+        if let Some(item_obj) = model.item(tile_source_widget.selected()) {
+            if let Ok(string_obj) = item_obj.downcast::<StringObject>() {
+                let tile_source_string = String::from(string_obj.string());
+                return Some(tile_source_string);
+            }
+        }
+    }
+    return None;
+}
+
 // Add a marker layer to the map.
 fn add_marker_layer_to_map(map: &SimpleMap) -> Option<MarkerLayer> {
     if map.viewport().is_some() {
@@ -834,7 +862,7 @@ fn update_marker_layer(
         .build();
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
-fn build_tile_source(id: &String) -> TileSource {
+fn build_tile_source(id: &String) -> Option<TileSource> {
     let mut tile_source: TileSource = TileSource {
         id: ("".to_string()),
         url_template: ("".to_string()),
@@ -843,11 +871,6 @@ fn build_tile_source(id: &String) -> TileSource {
         logo: (None),
         key: (None),
     };
-    let result = std::env::var("MAPTILER_API_KEY");
-    // match result {
-    //     Some(map_tiler_key) => {}
-    //     _ => return tile_source,
-    // }
     match id.as_str() {
         "OpenStreetMap" => {
             tile_source.id = id.to_owned();
@@ -857,111 +880,145 @@ fn build_tile_source(id: &String) -> TileSource {
                 "Map Data ODBL OpenStreetMap Contributors, Map Imagery CC-BY-SA 2.0 OpenStreetMap"
                     .to_string(),
             );
+            return Some(tile_source);
         }
         "MapTiler-Satellite" => {
             tile_source.id = id.to_owned();
             tile_source.url_template =
-                "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE"
-                    .to_string();
+                "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=".to_string();
             tile_source.license_uri = Some("https://maptiler.com".to_string());
             tile_source.license = Some("© MapTiler © OpenStreetMap contributors".to_string());
+            let result = std::env::var("MAPTILER_SATELLITE_KEY");
+            match result {
+                Ok(map_tiler_key) => {
+                    tile_source.url_template.push_str(map_tiler_key.as_str());
+                    return Some(tile_source);
+                }
+                _ => return None,
+            }
         }
         "MapTiler-Outdoor" => {
             tile_source.id = id.to_owned();
             tile_source.url_template =
-                "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE"
-                    .to_string();
+                "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.jpg?key=".to_string();
             tile_source.license_uri = Some("https://maptiler.com".to_string());
             tile_source.license = Some("© MapTiler © OpenStreetMap contributors".to_string());
+            let result = std::env::var("MAPTILER_OUTDOOR_KEY");
+            match result {
+                Ok(map_tiler_key) => {
+                    tile_source.url_template.push_str(map_tiler_key.as_str());
+                    return Some(tile_source);
+                }
+                _ => return None,
+            }
         }
-        _ => return tile_source,
+        _ => return None,
     }
-    return tile_source;
 }
 
 // Build the map.
 fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>) {
     let mc = &**mc_rc;
-    // Will need to update the OpenStreetMap on the next line with something GUI generated.
-    let tile_source = build_tile_source(&"OpenStreetMap".to_string());
-    let source_url = tile_source.url_template.as_str();
-    let source_license = glib::GString::from_string_unchecked(tile_source.license.unwrap());
-    let source_license_uri = glib::GString::from_string_unchecked(tile_source.license_uri.unwrap());
-    let downloader = TileDownloader::new(source_url);
-    let renderer = RasterRenderer::builder()
-        .license_uri(source_license_uri)
-        .license(source_license)
-        .data_source(&downloader)
-        .build();
-    ui.map.set_map_source(Some(&renderer));
 
-    // Get values from fit file.
-    let run_path = &mc.run_path;
-    ui.path_layer.as_ref().unwrap().remove_all();
-    for (lat, lon) in run_path.clone() {
-        let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
-        ui.path_layer.as_ref().unwrap().add_node(&coord);
-    }
-    ui.map.add_overlay_layer(ui.path_layer.as_ref().unwrap());
-    // add pins for the starting and stopping points of the run
-    ui.startstop_layer.as_ref().unwrap().remove_all();
-    let len = run_path.len();
-    if len > 0 {
-        let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
-        let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
-        let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
-        let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
-        let start_content = gtk4::Label::new(Some("🟢"));
-        let stop_content = gtk4::Label::new(Some("🔴"));
-        start_content.set_halign(gtk4::Align::Center);
-        start_content.set_valign(gtk4::Align::Baseline);
-        stop_content.set_halign(gtk4::Align::Center);
-        stop_content.set_valign(gtk4::Align::Baseline);
-        let start_widget = &start_content;
-        let stop_widget = &stop_content;
-        let start_marker = Marker::builder()
-            .latitude(start_lat_deg)
-            .longitude(start_lon_deg)
-            .child(&start_widget.clone())
-            // Set the visual content widget
-            .build();
-        let stop_marker = Marker::builder()
-            .latitude(stop_lat_deg)
-            .longitude(stop_lon_deg)
-            .child(&stop_widget.clone())
-            // Set the visual content widget
-            .build();
-        ui.startstop_layer
-            .as_ref()
-            .unwrap()
-            .add_marker(&start_marker);
-        ui.startstop_layer
-            .as_ref()
-            .unwrap()
-            .add_marker(&stop_marker);
-    }
-    ui.map
-        .add_overlay_layer(ui.startstop_layer.as_ref().unwrap());
-    // Add a layer for indication of current position (aka the runner).
-    ui.marker_layer.as_ref().unwrap().remove_all();
-    ui.map.add_overlay_layer(ui.marker_layer.as_ref().unwrap());
-    // You may want to set an initial center and zoom level.
-    if ui.map.viewport().is_some() {
-        let viewport = ui.map.viewport().unwrap();
-        let nec_lat = get_sess_record_field(&data, "nec_lat");
-        let nec_long = get_sess_record_field(&data, "nec_long");
-        let swc_lat = get_sess_record_field(&data, "swc_lat");
-        let swc_long = get_sess_record_field(&data, "swc_long");
-        if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
-            let center_lat =
-                (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
-            let center_long =
-                (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
-            viewport.set_location(center_lat, center_long);
-        } else {
-            viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
+    let result = get_tile_source_provider(&ui.tile_source_widget);
+    match result {
+        Some(provider) => {
+            let ts_result = build_tile_source(&provider);
+            match ts_result {
+                None => return,
+                Some(tile_source) => {
+                    let source_url = tile_source.url_template.as_str();
+                    let source_license =
+                        glib::GString::from_string_unchecked(tile_source.license.unwrap());
+                    let source_license_uri =
+                        glib::GString::from_string_unchecked(tile_source.license_uri.unwrap());
+                    let downloader = TileDownloader::new(source_url);
+                    let renderer = RasterRenderer::builder()
+                        .license_uri(source_license_uri)
+                        .license(source_license)
+                        .data_source(&downloader)
+                        .build();
+                    ui.map.set_map_source(Some(&renderer));
+
+                    // Get values from fit file.
+                    let run_path = &mc.run_path;
+                    ui.path_layer.as_ref().unwrap().remove_all();
+                    for (lat, lon) in run_path.clone() {
+                        let coord =
+                            Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
+                        ui.path_layer.as_ref().unwrap().add_node(&coord);
+                    }
+                    ui.map.add_overlay_layer(ui.path_layer.as_ref().unwrap());
+                    // add pins for the starting and stopping points of the run
+                    ui.startstop_layer.as_ref().unwrap().remove_all();
+                    let len = run_path.len();
+                    if len > 0 {
+                        let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
+                        let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
+                        let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
+                        let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
+                        let start_content = gtk4::Label::new(Some("🟢"));
+                        let stop_content = gtk4::Label::new(Some("🔴"));
+                        start_content.set_halign(gtk4::Align::Center);
+                        start_content.set_valign(gtk4::Align::Baseline);
+                        stop_content.set_halign(gtk4::Align::Center);
+                        stop_content.set_valign(gtk4::Align::Baseline);
+                        let start_widget = &start_content;
+                        let stop_widget = &stop_content;
+                        let start_marker = Marker::builder()
+                            .latitude(start_lat_deg)
+                            .longitude(start_lon_deg)
+                            .child(&start_widget.clone())
+                            // Set the visual content widget
+                            .build();
+                        let stop_marker = Marker::builder()
+                            .latitude(stop_lat_deg)
+                            .longitude(stop_lon_deg)
+                            .child(&stop_widget.clone())
+                            // Set the visual content widget
+                            .build();
+                        ui.startstop_layer
+                            .as_ref()
+                            .unwrap()
+                            .add_marker(&start_marker);
+                        ui.startstop_layer
+                            .as_ref()
+                            .unwrap()
+                            .add_marker(&stop_marker);
+                    }
+                    ui.map
+                        .add_overlay_layer(ui.startstop_layer.as_ref().unwrap());
+                    // Add a layer for indication of current position (aka the runner).
+                    ui.marker_layer.as_ref().unwrap().remove_all();
+                    ui.map.add_overlay_layer(ui.marker_layer.as_ref().unwrap());
+                    // You may want to set an initial center and zoom level.
+                    if ui.map.viewport().is_some() {
+                        let viewport = ui.map.viewport().unwrap();
+                        let nec_lat = get_sess_record_field(&data, "nec_lat");
+                        let nec_long = get_sess_record_field(&data, "nec_long");
+                        let swc_lat = get_sess_record_field(&data, "swc_lat");
+                        let swc_long = get_sess_record_field(&data, "swc_long");
+                        if !nec_lat.is_nan()
+                            & !nec_long.is_nan()
+                            & !swc_lat.is_nan()
+                            & !swc_long.is_nan()
+                        {
+                            let center_lat = (semi_to_degrees(nec_lat as f32)
+                                + semi_to_degrees(swc_lat as f32))
+                                / 2.0;
+                            let center_long = (semi_to_degrees(nec_long as f32)
+                                + semi_to_degrees(swc_long as f32))
+                                / 2.0;
+                            viewport.set_location(center_lat, center_long);
+                        } else {
+                            viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
+                        }
+                        viewport.set_zoom_level(14.0);
+                    }
+                }
+            }
         }
-        viewport.set_zoom_level(14.0);
+        None => return,
     }
 }
 // #####################################################################
