@@ -862,6 +862,14 @@ fn update_marker_layer(
         .build();
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
+fn build_logo() -> gtk4::Image {
+    let logo_image = gtk4::Image::from_file("..icons/maptiler-logo.png");
+    logo_image.set_halign(gtk4::Align::Start); // Position at the bottom-left
+    logo_image.set_valign(gtk4::Align::End);
+    logo_image.set_margin_start(10);
+    logo_image.set_margin_bottom(10);
+    return logo_image;
+}
 fn build_tile_source(id: &String) -> Option<TileSource> {
     let mut tile_source: TileSource = TileSource {
         id: ("".to_string()),
@@ -883,6 +891,7 @@ fn build_tile_source(id: &String) -> Option<TileSource> {
             return Some(tile_source);
         }
         "MapTiler-Satellite" => {
+            tile_source.logo = Some(build_logo());
             tile_source.id = id.to_owned();
             tile_source.url_template =
                 "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=".to_string();
@@ -898,6 +907,7 @@ fn build_tile_source(id: &String) -> Option<TileSource> {
             }
         }
         "MapTiler-Outdoor" => {
+            tile_source.logo = Some(build_logo());
             tile_source.id = id.to_owned();
             tile_source.url_template =
                 "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.jpg?key=".to_string();
