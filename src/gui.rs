@@ -743,7 +743,6 @@ pub struct TileSource {
     pub license_uri: Option<String>,
     pub license: Option<String>,
     pub logo: Option<gtk4::Picture>,
-    pub key: Option<String>,
 }
 
 // Return a string describing the map tile provider.
@@ -884,7 +883,6 @@ fn build_tile_source(id: &String) -> Option<TileSource> {
         license_uri: Some("".to_string()),
         license: Some("".to_string()),
         logo: (None),
-        key: (None),
     };
     match id.as_str() {
         "OpenStreetMap" => {
