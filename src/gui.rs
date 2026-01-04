@@ -21,7 +21,9 @@ use gtk4::{
 use libadwaita::prelude::*;
 use libadwaita::{Application, ApplicationWindow, WindowTitle};
 use libshumate::prelude::*;
-use libshumate::{Coordinate, Marker, MarkerLayer, PathLayer, SimpleMap};
+use libshumate::{
+    Coordinate, Marker, MarkerLayer, PathLayer, RasterRenderer, SimpleMap, TileDownloader,
+};
 use plotters::prelude::*;
 use plotters::style::full_palette::{BROWN, CYAN, GREY_600, GREY_800};
 use plotters_cairo::CairoBackend;
@@ -825,85 +827,109 @@ fn update_marker_layer(
 
 // Build the map.
 fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>) {
-    if libshumate::MapSourceRegistry::with_defaults()
-        .by_id("osm-mapnik")
-        .is_some()
-    {
-        let mc = &**mc_rc;
-        let source = libshumate::MapSourceRegistry::with_defaults()
-            .by_id("osm-mapnik")
-            .unwrap();
-        ui.map.set_map_source(Some(&source));
-        // Get values from fit file.
-        let run_path = &mc.run_path;
-        ui.path_layer.as_ref().unwrap().remove_all();
-        for (lat, lon) in run_path.clone() {
-            let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
-            ui.path_layer.as_ref().unwrap().add_node(&coord);
+    let mc = &**mc_rc;
+    // Create a map source in the form of a RasterRenderer.
+    // OSM:
+    let url_template = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    let license_uri = glib::GString::from_string_unchecked("http://openstreetmap.org".into());
+    let license = glib::GString::from_string_unchecked(
+        "Map Data ODBL OpenStreetMap Contributors, Map Imagery CC-BY-SA 2.0 OpenStreetMap".into(),
+    );
+
+    // MapTiler - Satellite.
+    // let url_template =
+    //     "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE";
+    // let license_uri = glib::GString::from_string_unchecked("https://maptiler.com".into());
+    // let license =
+    //     glib::GString::from_string_unchecked("© MapTiler © OpenStreetMap contributors".into());
+
+    // MapTiler - Outdoor.
+    // let url_template =
+    //     "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.png?key=SECRETKEYGOESHERE";
+    // let license_uri = glib::GString::from_string_unchecked("https://maptiler.com".into());
+    // let license =
+    //     glib::GString::from_string_unchecked("© MapTiler © OpenStreetMap contributors".into());
+
+    let downloader = TileDownloader::new(url_template);
+    let renderer = RasterRenderer::builder()
+        .license_uri(license_uri)
+        .license(license)
+        .data_source(&downloader)
+        .build();
+    ui.map.set_map_source(Some(&renderer));
+
+    // Get values from fit file.
+    let run_path = &mc.run_path;
+    ui.path_layer.as_ref().unwrap().remove_all();
+    for (lat, lon) in run_path.clone() {
+        let coord = Coordinate::new_full(semi_to_degrees(lat), semi_to_degrees(lon));
+        ui.path_layer.as_ref().unwrap().add_node(&coord);
+    }
+    ui.map.add_overlay_layer(ui.path_layer.as_ref().unwrap());
+    // add pins for the starting and stopping points of the run
+    ui.startstop_layer.as_ref().unwrap().remove_all();
+    let len = run_path.len();
+    if len > 0 {
+        let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
+        let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
+        let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
+        let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
+        let start_content = gtk4::Label::new(Some("🟢"));
+        let stop_content = gtk4::Label::new(Some("🔴"));
+        start_content.set_halign(gtk4::Align::Center);
+        start_content.set_valign(gtk4::Align::Baseline);
+        stop_content.set_halign(gtk4::Align::Center);
+        stop_content.set_valign(gtk4::Align::Baseline);
+        let start_widget = &start_content;
+        let stop_widget = &stop_content;
+        let start_marker = Marker::builder()
+            .latitude(start_lat_deg)
+            .longitude(start_lon_deg)
+            .child(&start_widget.clone())
+            // Set the visual content widget
+            .build();
+        let stop_marker = Marker::builder()
+            .latitude(stop_lat_deg)
+            .longitude(stop_lon_deg)
+            .child(&stop_widget.clone())
+            // Set the visual content widget
+            .build();
+        ui.startstop_layer
+            .as_ref()
+            .unwrap()
+            .add_marker(&start_marker);
+        ui.startstop_layer
+            .as_ref()
+            .unwrap()
+            .add_marker(&stop_marker);
+    }
+    ui.map
+        .add_overlay_layer(ui.startstop_layer.as_ref().unwrap());
+    // Add a layer for indication of current position (aka the runner).
+    ui.marker_layer.as_ref().unwrap().remove_all();
+    ui.map.add_overlay_layer(ui.marker_layer.as_ref().unwrap());
+    // You may want to set an initial center and zoom level.
+    if ui.map.viewport().is_some() {
+        let viewport = ui.map.viewport().unwrap();
+        let nec_lat = get_sess_record_field(&data, "nec_lat");
+        let nec_long = get_sess_record_field(&data, "nec_long");
+        let swc_lat = get_sess_record_field(&data, "swc_lat");
+        let swc_long = get_sess_record_field(&data, "swc_long");
+        if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
+            let center_lat =
+                (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
+            let center_long =
+                (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
+            viewport.set_location(center_lat, center_long);
+        } else {
+            viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
         }
-        ui.map.add_overlay_layer(ui.path_layer.as_ref().unwrap());
-        // add pins for the starting and stopping points of the run
-        ui.startstop_layer.as_ref().unwrap().remove_all();
-        let len = run_path.len();
-        if len > 0 {
-            let start_lat_deg = semi_to_degrees(run_path[0..1][0].0);
-            let start_lon_deg = semi_to_degrees(run_path[0..1][0].1);
-            let stop_lat_deg = semi_to_degrees(run_path[len - 1..len][0].0);
-            let stop_lon_deg = semi_to_degrees(run_path[len - 1..len][0].1);
-            let start_content = gtk4::Label::new(Some("🟢"));
-            let stop_content = gtk4::Label::new(Some("🔴"));
-            start_content.set_halign(gtk4::Align::Center);
-            start_content.set_valign(gtk4::Align::Baseline);
-            stop_content.set_halign(gtk4::Align::Center);
-            stop_content.set_valign(gtk4::Align::Baseline);
-            let start_widget = &start_content;
-            let stop_widget = &stop_content;
-            let start_marker = Marker::builder()
-                .latitude(start_lat_deg)
-                .longitude(start_lon_deg)
-                .child(&start_widget.clone())
-                // Set the visual content widget
-                .build();
-            let stop_marker = Marker::builder()
-                .latitude(stop_lat_deg)
-                .longitude(stop_lon_deg)
-                .child(&stop_widget.clone())
-                // Set the visual content widget
-                .build();
-            ui.startstop_layer
-                .as_ref()
-                .unwrap()
-                .add_marker(&start_marker);
-            ui.startstop_layer
-                .as_ref()
-                .unwrap()
-                .add_marker(&stop_marker);
-        }
-        ui.map
-            .add_overlay_layer(ui.startstop_layer.as_ref().unwrap());
-        // Add a layer for indication of current position (aka the runner).
-        ui.marker_layer.as_ref().unwrap().remove_all();
-        ui.map.add_overlay_layer(ui.marker_layer.as_ref().unwrap());
-        // You may want to set an initial center and zoom level.
-        if ui.map.viewport().is_some() {
-            let viewport = ui.map.viewport().unwrap();
-            let nec_lat = get_sess_record_field(&data, "nec_lat");
-            let nec_long = get_sess_record_field(&data, "nec_long");
-            let swc_lat = get_sess_record_field(&data, "swc_lat");
-            let swc_long = get_sess_record_field(&data, "swc_long");
-            if !nec_lat.is_nan() & !nec_long.is_nan() & !swc_lat.is_nan() & !swc_long.is_nan() {
-                let center_lat =
-                    (semi_to_degrees(nec_lat as f32) + semi_to_degrees(swc_lat as f32)) / 2.0;
-                let center_long =
-                    (semi_to_degrees(nec_long as f32) + semi_to_degrees(swc_long as f32)) / 2.0;
-                viewport.set_location(center_lat, center_long);
-            } else {
-                viewport.set_location(29.7601, -95.3701); // e.g. Houston, USA
-            }
-            viewport.set_zoom_level(14.0);
-        }
+        viewport.set_zoom_level(14.0);
     }
 }
+// #####################################################################
+// ##################### SUMMARY FUNCTIONS #############################
+// #####################################################################
 // Return a language specific string for the field name identifier.
 fn pretty_field(fld: &FitDataField) -> String {
     match fld.name() {
@@ -942,9 +968,7 @@ fn pretty_field(fld: &FitDataField) -> String {
         _ => return "".to_string(),
     }
 }
-// #####################################################################
-// ##################### SUMMARY FUNCTIONS #############################
-// #####################################################################
+
 // Convert a value to user-defined units and return a formatted string when supplied a field and units.
 fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<String> {
     match fld.name() {
