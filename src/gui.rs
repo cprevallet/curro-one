@@ -299,7 +299,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.units_widget.set_model(Some(&ui.uom));
     ui.tile_source_widget.set_model(Some(&ui.tile_source));
     // TODO remove this when the graphical interface is ready.
-    ui.tile_source_widget.set_selected(2);
+    ui.tile_source_widget.set_selected(0);
     ui.text_view.set_buffer(Some(&ui.text_buffer));
     ui.text_view
         .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
