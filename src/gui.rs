@@ -130,6 +130,7 @@ pub struct UserInterface {
     pub units_widget: DropDown,
     pub tile_source: StringList,
     pub tile_source_widget: DropDown,
+    pub logo_overlay: Overlay,
     pub about_label: String,
     pub about_btn: Button,
     pub da: DrawingArea,
@@ -269,6 +270,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(100)
             .build(),
+        logo_overlay: gtk4::Overlay::builder().build(),
         about_label: tr("ABOUT_BUTTON_LABEL", None),
         about_btn: Button::builder()
             .margin_top(5)
@@ -297,7 +299,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.units_widget.set_model(Some(&ui.uom));
     ui.tile_source_widget.set_model(Some(&ui.tile_source));
     // TODO remove this when the graphical interface is ready.
-    ui.tile_source_widget.set_selected(0);
+    ui.tile_source_widget.set_selected(2);
     ui.text_view.set_buffer(Some(&ui.text_buffer));
     ui.text_view
         .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
@@ -377,8 +379,8 @@ pub fn construct_views_from_data(
     // 2. Connect embedded widgets to their parents.
     ui.da_window.set_child(Some(&ui.overlay));
     ui.frame_right.set_child(Some(&ui.da_window));
-
-    ui.frame_left.set_child(Some(&ui.map));
+    ui.logo_overlay.set_child(Some(&ui.map));
+    ui.frame_left.set_child(Some(&ui.logo_overlay));
     // 3. Configure the widget layout.
     ui.left_frame_pane.set_start_child(Some(&ui.frame_left));
     ui.left_frame_pane.set_end_child(Some(&ui.scrolled_window));
@@ -740,7 +742,7 @@ pub struct TileSource {
     pub url_template: String,
     pub license_uri: Option<String>,
     pub license: Option<String>,
-    pub logo: Option<gtk4::Image>,
+    pub logo: Option<gtk4::Picture>,
     pub key: Option<String>,
 }
 
@@ -862,9 +864,14 @@ fn update_marker_layer(
         .build();
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
-fn build_logo() -> gtk4::Image {
-    let logo_image = gtk4::Image::from_file("..icons/maptiler-logo.png");
-    logo_image.set_halign(gtk4::Align::Start); // Position at the bottom-left
+fn build_logo() -> gtk4::Picture {
+    let logo_file_path = Path::new("../icons/maptiler-logo.png");
+    let logo_image = gtk4::Picture::for_filename(logo_file_path);
+    logo_image.set_width_request(102); // Set desired width in pixels
+    logo_image.set_height_request(30); // Set desired height in pixels
+    logo_image.set_can_shrink(true);
+    logo_image.set_keep_aspect_ratio(true);
+    logo_image.set_halign(gtk4::Align::Center); // Position at the bottom-center
     logo_image.set_valign(gtk4::Align::End);
     logo_image.set_margin_start(10);
     logo_image.set_margin_bottom(10);
@@ -949,6 +956,9 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
                         .data_source(&downloader)
                         .build();
                     ui.map.set_map_source(Some(&renderer));
+                    if tile_source.logo.is_some() {
+                        ui.logo_overlay.add_overlay(&tile_source.logo.unwrap());
+                    }
 
                     // Get values from fit file.
                     let run_path = &mc.run_path;
