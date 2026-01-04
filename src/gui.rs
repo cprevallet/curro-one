@@ -720,6 +720,16 @@ fn update_map_graph_and_summary_widgets(
 // #####################################################################
 // ##################### MAP FUNCTIONS #################################
 // #####################################################################
+// Map tile providers.
+pub struct TileSource {
+    pub id: String,
+    pub url_template: String,
+    pub license_uri: Option<String>,
+    pub license: Option<String>,
+    pub logo: Option<gtk4::Image>,
+    pub key: Option<String>,
+}
+
 // Add a marker layer to the map.
 fn add_marker_layer_to_map(map: &SimpleMap) -> Option<MarkerLayer> {
     if map.viewport().is_some() {
@@ -824,36 +834,63 @@ fn update_marker_layer(
         .build();
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
+fn build_tile_source(id: &String) -> TileSource {
+    let mut tile_source: TileSource = TileSource {
+        id: ("".to_string()),
+        url_template: ("".to_string()),
+        license_uri: Some("".to_string()),
+        license: Some("".to_string()),
+        logo: (None),
+        key: (None),
+    };
+    let result = std::env::var("MAPTILER_API_KEY");
+    // match result {
+    //     Some(map_tiler_key) => {}
+    //     _ => return tile_source,
+    // }
+    match id.as_str() {
+        "OpenStreetMap" => {
+            tile_source.id = id.to_owned();
+            tile_source.url_template = "https://tile.openstreetmap.org/{z}/{x}/{y}.png".to_string();
+            tile_source.license_uri = Some("http://openstreetmap.org".to_string());
+            tile_source.license = Some(
+                "Map Data ODBL OpenStreetMap Contributors, Map Imagery CC-BY-SA 2.0 OpenStreetMap"
+                    .to_string(),
+            );
+        }
+        "MapTiler-Satellite" => {
+            tile_source.id = id.to_owned();
+            tile_source.url_template =
+                "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE"
+                    .to_string();
+            tile_source.license_uri = Some("https://maptiler.com".to_string());
+            tile_source.license = Some("© MapTiler © OpenStreetMap contributors".to_string());
+        }
+        "MapTiler-Outdoor" => {
+            tile_source.id = id.to_owned();
+            tile_source.url_template =
+                "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE"
+                    .to_string();
+            tile_source.license_uri = Some("https://maptiler.com".to_string());
+            tile_source.license = Some("© MapTiler © OpenStreetMap contributors".to_string());
+        }
+        _ => return tile_source,
+    }
+    return tile_source;
+}
 
 // Build the map.
 fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>) {
     let mc = &**mc_rc;
-    // Create a map source in the form of a RasterRenderer.
-    // OSM:
-    let url_template = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-    let license_uri = glib::GString::from_string_unchecked("http://openstreetmap.org".into());
-    let license = glib::GString::from_string_unchecked(
-        "Map Data ODBL OpenStreetMap Contributors, Map Imagery CC-BY-SA 2.0 OpenStreetMap".into(),
-    );
-
-    // MapTiler - Satellite.
-    // let url_template =
-    //     "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=SECRETKEYGOESHERE";
-    // let license_uri = glib::GString::from_string_unchecked("https://maptiler.com".into());
-    // let license =
-    //     glib::GString::from_string_unchecked("© MapTiler © OpenStreetMap contributors".into());
-
-    // MapTiler - Outdoor.
-    // let url_template =
-    //     "https://api.maptiler.com/maps/outdoor/{z}/{x}/{y}.png?key=SECRETKEYGOESHERE";
-    // let license_uri = glib::GString::from_string_unchecked("https://maptiler.com".into());
-    // let license =
-    //     glib::GString::from_string_unchecked("© MapTiler © OpenStreetMap contributors".into());
-
-    let downloader = TileDownloader::new(url_template);
+    // Will need to update the OpenStreetMap on the next line with something GUI generated.
+    let tile_source = build_tile_source(&"OpenStreetMap".to_string());
+    let source_url = tile_source.url_template.as_str();
+    let source_license = glib::GString::from_string_unchecked(tile_source.license.unwrap());
+    let source_license_uri = glib::GString::from_string_unchecked(tile_source.license_uri.unwrap());
+    let downloader = TileDownloader::new(source_url);
     let renderer = RasterRenderer::builder()
-        .license_uri(license_uri)
-        .license(license)
+        .license_uri(source_license_uri)
+        .license(source_license)
         .data_source(&downloader)
         .build();
     ui.map.set_map_source(Some(&renderer));
