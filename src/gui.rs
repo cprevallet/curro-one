@@ -7,6 +7,7 @@ use crate::data::{
     get_timestamps, get_xy, is_american_thanksgiving, is_easter, semi_to_degrees, set_plot_range,
 };
 use crate::i18n::tr;
+use crate::show_error_dialog;
 use directories::BaseDirs;
 use fitparser::{FitDataField, FitDataRecord, profile::field_types::MesgNum};
 use gtk4::cairo::Context;
@@ -876,7 +877,7 @@ fn build_logo() -> gtk4::Picture {
     logo_image.set_margin_bottom(10);
     return logo_image;
 }
-fn build_tile_source(id: &String) -> Option<TileSource> {
+fn build_tile_source(id: &String, ui: &UserInterface) -> Option<TileSource> {
     let mut tile_source: TileSource = TileSource {
         id: ("".to_string()),
         url_template: ("".to_string()),
@@ -908,7 +909,16 @@ fn build_tile_source(id: &String) -> Option<TileSource> {
                     tile_source.url_template.push_str(map_tiler_key.as_str());
                     return Some(tile_source);
                 }
-                _ => return None,
+                _ => {
+                    //TODO Need to translate string English/French/Spanish
+                    show_error_dialog(
+                        &ui.win,
+                        String::from(
+                            "No API key found. Set environment variable MAPTILER_SATELLITE_KEY=?",
+                        ),
+                    );
+                    return None;
+                }
             }
         }
         "MapTiler-Outdoor" => {
@@ -924,7 +934,16 @@ fn build_tile_source(id: &String) -> Option<TileSource> {
                     tile_source.url_template.push_str(map_tiler_key.as_str());
                     return Some(tile_source);
                 }
-                _ => return None,
+                _ => {
+                    //TODO Need to translate string English/French/Spanish
+                    show_error_dialog(
+                        &ui.win,
+                        String::from(
+                            "No API key found. Set environment variable MAPTILER_OUTDOOR_KEY=?",
+                        ),
+                    );
+                    return None;
+                }
             }
         }
         _ => return None,
@@ -938,7 +957,7 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
     let result = get_tile_source_provider(&ui.tile_source_widget);
     match result {
         Some(provider) => {
-            let ts_result = build_tile_source(&provider);
+            let ts_result = build_tile_source(&provider, &ui);
             match ts_result {
                 None => return,
                 Some(tile_source) => {

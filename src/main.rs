@@ -67,7 +67,7 @@ fn main() {
 }
 
 // Create and present a modal MessageDialog when supplied a text string.
-fn show_error_dialog<W: IsA<gtk4::Window>>(parent: &W, text_str: String) {
+pub fn show_error_dialog<W: IsA<gtk4::Window>>(parent: &W, text_str: String) {
     // Create the MessageDialog
     let dialog = MessageDialog::builder()
         // Set the parent window to make it modal relative to the main window
