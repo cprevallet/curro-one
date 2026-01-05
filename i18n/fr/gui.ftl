@@ -7,6 +7,8 @@ ABOUT_DIALOG_COMMENT = Consultez vos fichiers de course à pied sur le bureau de
 OPEN_FILE_BUTTON_LABEL = Ouvrir un fichier FIT...
 MESSAGE_FILE_NOT_FOUND = Fichier introuvable.
 MESSAGE_PERMISSIONS = Erreur inconnue. Problème d'autorisations?
+MESSAGE_API_MAPTILER_SATELLITE = Aucune clé API trouvée. Définissez la variable d'environnement MAPTILER_SATELLITE_KEY=?
+MESSAGE_API_MAPTILER_OUTDOOR = Aucune clé API trouvée. Définissez la variable d'environnement MAPTILER_OUTDOOR_KEY=?
 
 TOOLTIP_TEXT_VIEW = 
     Cette section contient un rapport sur les tours, les zones de fréquence cardiaque et les informations de résumé de session.

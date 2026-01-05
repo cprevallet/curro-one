@@ -7,6 +7,8 @@ ABOUT_DIALOG_COMMENT = Visualiza tus archivos de entrenamiento de carrera en tu 
 OPEN_FILE_BUTTON_LABEL = Abrir un archivo FIT
 MESSAGE_FILE_NOT_FOUND = Archivo no encontrado.
 MESSAGE_PERMISSIONS = Error desconocido. ¿Problema de permisos?
+MESSAGE_API_MAPTILER_SATELLITE = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_SATELLITE_KEY=?
+MESSAGE_API_MAPTILER_OUTDOOR = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_OUTDOOR_KEY=?
 
 TOOLTIP_TEXT_VIEW = 
     Esta sección contiene un informe de vueltas, zonas de frecuencia cardíaca e información resumida de la sesión.

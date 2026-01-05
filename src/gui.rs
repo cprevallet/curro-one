@@ -910,12 +910,9 @@ fn build_tile_source(id: &String, ui: &UserInterface) -> Option<TileSource> {
                     return Some(tile_source);
                 }
                 _ => {
-                    //TODO Need to translate string English/French/Spanish
                     show_error_dialog(
                         &ui.win,
-                        String::from(
-                            "No API key found. Set environment variable MAPTILER_SATELLITE_KEY=?",
-                        ),
+                        String::from(tr("MESSAGE_API_MAPTILER_SATELLITE", None)),
                     );
                     return None;
                 }
@@ -935,12 +932,9 @@ fn build_tile_source(id: &String, ui: &UserInterface) -> Option<TileSource> {
                     return Some(tile_source);
                 }
                 _ => {
-                    //TODO Need to translate string English/French/Spanish
                     show_error_dialog(
                         &ui.win,
-                        String::from(
-                            "No API key found. Set environment variable MAPTILER_OUTDOOR_KEY=?",
-                        ),
+                        String::from(String::from(tr("MESSAGE_API_MAPTILER_OUTDOOR", None))),
                     );
                     return None;
                 }
