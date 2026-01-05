@@ -992,6 +992,8 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
                     let mut next_child = ui.logo_overlay.first_child();
                     while let Some(child) = next_child {
                         next_child = child.next_sibling();
+                        // Check if this child is the map widget.
+                        // We only want to remove the extra overlays.
                         if child != *ui.map.upcast_ref::<gtk4::Widget>() {
                             ui.logo_overlay.remove_overlay(&child);
                         }
