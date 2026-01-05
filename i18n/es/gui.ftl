@@ -7,8 +7,15 @@ ABOUT_DIALOG_COMMENT = Visualiza tus archivos de entrenamiento de carrera en tu 
 OPEN_FILE_BUTTON_LABEL = Abrir un archivo FIT
 MESSAGE_FILE_NOT_FOUND = Archivo no encontrado.
 MESSAGE_PERMISSIONS = Error desconocido. ¿Problema de permisos?
-MESSAGE_API_MAPTILER_SATELLITE = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_SATELLITE_KEY=?
-MESSAGE_API_MAPTILER_OUTDOOR = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_OUTDOOR_KEY=?
+MESSAGE_API_MAPTILER_SATELLITE =
+    No se encontró ninguna clave API.
+    Configure la variable de entorno MAPTILER_SATELLITE_KEY=?
+    Consulte la documentación sobre cómo obtener e instalar una clave.
+    
+MESSAGE_API_MAPTILER_OUTDOOR =
+    No se encontró ninguna clave API.
+    Configure la variable de entorno MAPTILER_OUTDOOR_KEY=?
+    Consulte la documentación sobre cómo obtener e instalar una clave.
 
 TOOLTIP_TILE_SOURCE = Seleccione el proveedor de teselas de su mapa.
 

@@ -7,8 +7,14 @@ ABOUT_DIALOG_COMMENT = Consultez vos fichiers de course à pied sur le bureau de
 OPEN_FILE_BUTTON_LABEL = Ouvrir un fichier FIT...
 MESSAGE_FILE_NOT_FOUND = Fichier introuvable.
 MESSAGE_PERMISSIONS = Erreur inconnue. Problème d'autorisations?
-MESSAGE_API_MAPTILER_SATELLITE = Aucune clé API trouvée. Définissez la variable d'environnement MAPTILER_SATELLITE_KEY=?
-MESSAGE_API_MAPTILER_OUTDOOR = Aucune clé API trouvée. Définissez la variable d'environnement MAPTILER_OUTDOOR_KEY=?
+MESSAGE_API_MAPTILER_SATELLITE =
+    Aucune clé API trouvée.
+    Définissez la variable d'environnement MAPTILER_SATELLITE_KEY=?
+    Reportez-vous à la documentation pour les procédures d'obtention et d'installation de la clé.
+MESSAGE_API_MAPTILER_OUTDOOR =
+    Aucune clé API trouvée.
+    Définissez la variable d'environnement MAPTILER_OUTDOOR_KEY=?
+    Reportez-vous à la documentation pour les procédures d'obtention et d'installation de la clé.
 
 TOOLTIP_TILE_SOURCE = Sélectionnez le fournisseur de fonds de carte.
 

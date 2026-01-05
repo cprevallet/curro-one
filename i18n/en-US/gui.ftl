@@ -7,8 +7,15 @@ ABOUT_DIALOG_COMMENT = View your run files on the desktop.
 OPEN_FILE_BUTTON_LABEL = Open a FIT file
 MESSAGE_FILE_NOT_FOUND = File not found.
 MESSAGE_PERMISSIONS = Unknown error. Permissions problem?
-MESSAGE_API_MAPTILER_SATELLITE = No API key found. Set environment variable MAPTILER_SATELLITE_KEY=?
-MESSAGE_API_MAPTILER_OUTDOOR = No API key found. Set environment variable MAPTILER_OUTDOOR_KEY=?
+MESSAGE_API_MAPTILER_SATELLITE =
+    No API key found.
+    Set environment variable MAPTILER_SATELLITE_KEY=?
+    Refer to the documentation for instructions on how to obtain and install the key.
+
+MESSAGE_API_MAPTILER_OUTDOOR =
+    No API key found.
+    Set environment variable MAPTILER_OUTDOOR_KEY=?
+    Refer to the documentation for instructions on how to obtain and install the key.
 
 TOOLTIP_TILE_SOURCE = Select your map's tile provider.
 
