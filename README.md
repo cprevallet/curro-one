@@ -30,4 +30,4 @@ Support for TCX files has not been provided in this version.  The original Silic
 https://youtu.be/JY-fb4hMTX8
 
 # Documentation
-https://github.com/cprevallet/siliconsneaker2/blob/main/doc/SiliconSneaker2%20User%20Documentation%20v0.13.4-beta.pdf
+https://github.com/cprevallet/siliconsneaker2/blob/main/doc/SiliconSneaker2%20User%20Documentation%20v0.14.0-beta.pdf
