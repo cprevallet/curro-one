@@ -521,7 +521,7 @@ that stores files in the Fit Format.</p>
 <p>Trend graphs of pace, cadence, heartrate, altitude, temperature are provided.</p>
 </li>
 <li>
-<p>A map indicating position is provided via a GPS generated path.</p>
+<p>A map indicating position is provided via a GPS generated path. Multiple map tile sources are supported.</p>
 </li>
 <li>
 <p>Zoom functions for the graphs and map.</p>
@@ -768,8 +768,10 @@ $ ./target/release/siliconsneaker2
 <div class="paragraph">
 <p>Add a line like this to your /etc/profile file:</p>
 </div>
-<div class="paragraph">
-<p>"${LANG:=fr_FR.utf8}"; export LANG</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">"${LANG:=fr_FR.utf8}"; export LANG</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>where fr_FR.utf8 is the locale you want to use as a default.</p>
@@ -777,8 +779,10 @@ $ ./target/release/siliconsneaker2
 <div class="paragraph">
 <p>Alternatively, a language may be selected for a single invocation by setting an environmental variable. For example:</p>
 </div>
-<div class="paragraph">
-<p>env LANG=es_ES.UTF-8 siliconsneaker2</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">env LANG=es_ES.UTF-8 siliconsneaker2</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>will invoke SiliconSneaker2 with Spanish for a single time.</p>
@@ -792,46 +796,55 @@ $ ./target/release/siliconsneaker2
 <div class="sectionbody">
 <div class="paragraph">
 <p>As of this writing, SiliconSneaker2 has support for three different map tilers: OpenStreetMap (the default), MapTiler-Satellite, and MapTiler-Outdoor.  Use of OpenStreetMap requires
-no additional configuration and you may skip the rest of this section (although you may return to it later if you change your mind).  Using either (or both) of the latter two tilers requires additional steps.</p>
-</div>
-<div class="paragraph">
-<p>First create a free account at <a href="https://www.maptiler.com/" class="bare">https://www.maptiler.com/</a> ,
-and obtain an API key(s) - an alphanumeric string used to access the "tiles" used to create a map.  Generally it is preferred to obtain separate keys for each tiler.</p>
-</div>
-<div class="paragraph">
-<p>Once the key has been obtained, it must be provided via Environment strings to SiliconSneaker2 as below:</p>
+no additional configuration and you may skip the rest of this section (although you may return to it later if you change your mind).  Using either (or both) of the latter two tilers requires additional steps as follows.</p>
 </div>
 <div class="sect2">
 <h3 id="_windows_2">4.1. Windows</h3>
-<div class="imageblock">
-<div class="content">
-<img src="Key_Install1.png" alt="Key Install1">
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p>Create a free account at <a href="https://www.maptiler.com/" class="bare">https://www.maptiler.com/</a> and obtain one or more API key(s) - an alphanumeric string used to access the "tiles" used to create a map.  Generally it is preferred to obtain separate keys for each tiler.</p>
+</li>
+<li>
+<p>Open the environmental variable editing application from the Control Panel.</p>
+</li>
+<li>
+<p>Add a new user environment variable.</p>
+</li>
+<li>
+<p>Add the API key from MapTiler using the appropriate variable name.  The variable name must match either MAPTILER_SATELLITE_KEY or MAPTILER_OUTDOOR_KEY and the variable value must match the alphanumeric API key provided by MapTiler in the previous step.</p>
+</li>
+<li>
+<p>Reboot</p>
+</li>
+<li>
+<p>Restart SiliconSneaker2</p>
+</li>
+<li>
+<p>Select map tiler you have the key for from the hamburger menu.  The map should momentarily update with the new tiles.</p>
+</li>
+</ol>
 </div>
-<div class="title">Figure 11. Selecting the map tiler to use.</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="Key_Install2.png" alt="Key Install2">
-</div>
-<div class="title">Figure 12. Selecting the Satellite map tiler generates an error message.</div>
+<div class="paragraph">
+<p>A visual representation of the above steps are provided in the next series of screenshots.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="Key_Install3.png" alt="Key Install3">
 </div>
-<div class="title">Figure 13. Open the environmental variable editing application from the Control Panel.</div>
+<div class="title">Figure 11. Open the environmental variable editing application from the Control Panel.</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="Key_Install4.png" alt="Key Install4">
 </div>
-<div class="title">Figure 14. Add the API key from MapTiler using the appropriate variable name.  The key variable must match as shown and the alphanumeric value must match MapTiler.</div>
+<div class="title">Figure 12. Add the API key from MapTiler using the appropriate variable name and value.  The variable name must match either MAPTILER_SATELLITE_KEY or MAPTILER_OUTDOOR_KEY and the variable value must match the MapTiler API key.</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="Key_Install5.png" alt="Key Install5">
 </div>
-<div class="title">Figure 15. A successfully entered key</div>
+<div class="title">Figure 13. A successfully entered key</div>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -847,6 +860,18 @@ A reboot will be necessary for the environment variable (and key) to become acti
 </div>
 <div class="imageblock">
 <div class="content">
+<img src="Key_Install1.png" alt="Key Install1">
+</div>
+<div class="title">Figure 14. Selecting the map tiler to use.</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="Key_Install2.png" alt="Key Install2">
+</div>
+<div class="title">Figure 15. Selecting the Satellite map tiler generates an error message if no key has been provided. Acknowledge and reset back to OpenStreetMap.</div>
+</div>
+<div class="imageblock">
+<div class="content">
 <img src="Key_Install6.png" alt="Key Install6">
 </div>
 <div class="title">Figure 16. Once the key has been installed the satellite view should appear once selected.</div>
@@ -855,25 +880,30 @@ A reboot will be necessary for the environment variable (and key) to become acti
 <div class="sect2">
 <h3 id="_debian_linux_2">4.2. Debian Linux</h3>
 <div class="paragraph">
-<p>Add a line like this to your /etc/profile file:</p>
+<p>Create a free account at <a href="https://www.maptiler.com/" class="bare">https://www.maptiler.com/</a> and obtain one or more API key(s) - an alphanumeric string used to access the "tiles" used to create a map.  Generally it is preferred to obtain separate keys for each tiler.
+Add a line like this to your /etc/profile file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">"${MAPTILER_OUTDOOR_KEY=&lt;KEY&gt;}"; export MAPTILER_OUTDOOR_KEY
+"${MAPTILER_SATELLITE_KEY=&lt;KEY&gt;}"; export MAPTILER_SATELLITE_KEY</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>"${MAPTILER_OUTDOOR_KEY=&lt;KEYSTRING&gt;}"; export MAPTILER_OUTDOOR_KEY
-"${MAPTILER_SATELLITE_KEY=&lt;KEYSTRING&gt;}"; export MAPTILER_SATELLITE_KEY</p>
-</div>
-<div class="paragraph">
-<p>where &lt;KEYSTRING&gt; (no brackets) is the alphanumeric key obtained from MapTiler.</p>
+<p>where &lt;KEY&gt; (no brackets) is the alphanumeric key obtained from MapTiler.</p>
 </div>
 <div class="paragraph">
 <p>Alternatively, a language may be selected for a single invocation by setting an environmental variable. For example:</p>
 </div>
-<div class="paragraph">
-<p>env MAPTILER_OUTDOOR_KEY=&lt;KEYSTRING&gt; siliconsneaker2</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">env MAPTILER_OUTDOOR_KEY=&lt;KEY&gt; siliconsneaker2</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>will invoke SiliconSneaker2 allowing the use of the  MapTiler-Outdoor tiles for a single time.
-&lt;&lt;&lt;</p>
+<p>will invoke SiliconSneaker2 allowing the use of the  MapTiler-Outdoor tiles for a single time.</p>
 </div>
+<div style="page-break-after: always;"></div>
 </div>
 </div>
 </div>
@@ -1147,7 +1177,7 @@ page up and page down keys control the movement from the keyboard.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Use the top slider to zoom the graphs' y-axis.</p>
+<p>Use the +/- buttons to zoom the graphs' y-axis.  Use the similar looking controls for zooming the map.</p>
 </div>
 </td>
 </tr>
@@ -1161,7 +1191,7 @@ page up and page down keys control the movement from the keyboard.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Use the bottom slider to advance through a run. Note the indications on the map and graphs.</p>
+<p>Use the slider to advance through a run. Note the indications on the map and graphs.</p>
 </div>
 </td>
 </tr>
@@ -1424,7 +1454,7 @@ Copyright (c) libshumate The Gnome Foundation</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 12:05:12 -0600
+Last updated 2026-01-05 14:36:47 -0600
 </div>
 </div>
 </body>
