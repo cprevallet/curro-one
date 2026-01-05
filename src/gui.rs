@@ -992,7 +992,9 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
                     let mut next_child = ui.logo_overlay.first_child();
                     while let Some(child) = next_child {
                         next_child = child.next_sibling();
-                        ui.logo_overlay.remove_overlay(&child);
+                        if child != *ui.map.upcast_ref::<gtk4::Widget>() {
+                            ui.logo_overlay.remove_overlay(&child);
+                        }
                     }
                     if tile_source.logo.is_some() {
                         ui.logo_overlay.add_overlay(&tile_source.logo.unwrap());
