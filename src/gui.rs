@@ -301,6 +301,8 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.tile_source_widget.set_model(Some(&ui.tile_source));
     // TODO remove this when the graphical interface is ready.
     ui.tile_source_widget.set_selected(0);
+    ui.tile_source_widget
+        .set_tooltip_text(Some(&tr("TOOLTIP_TILE_SOURCE", None)));
     ui.text_view.set_buffer(Some(&ui.text_buffer));
     ui.text_view
         .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
@@ -308,6 +310,7 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.about_btn
         .set_tooltip_text(Some(&tr("TOOLTIP_ABOUT_BUTTON", None)));
     ui.menu_box.append(&ui.units_widget);
+    ui.menu_box.append(&ui.tile_source_widget);
     ui.menu_box.append(&ui.about_btn);
     ui.popover.set_autohide(true); // Ensures clicking outside or on the button closes it
     ui.popover.set_cascade_popdown(true); // Closes nested popovers if any
@@ -423,6 +426,23 @@ pub fn connect_interactive_widgets(
         },
     ));
 
+    // update the tiles when the map provider changes.
+    let mc_rc_for_tile = Rc::clone(&mc_rc);
+    // Hook-up the tile_widget change handler.
+    // update everything when the unit system changes.
+    ui.tile_source_widget.connect_selected_notify(clone!(
+        #[strong]
+        data,
+        #[strong]
+        ui,
+        move |_| {
+            build_map(&data, &ui, &mc_rc_for_tile);
+            let curr_pos = ui.curr_pos_adj.clone();
+            update_marker_layer(&data, &ui, &curr_pos, &mc_rc_for_tile);
+            ui.da.queue_draw();
+        },
+    ));
+
     // Hook-up the zoom scale change handler.
     // redraw the graphs when the zoom changes.
     ui.y_zoom_adj.connect_value_changed(clone!(
@@ -493,6 +513,8 @@ pub fn set_up_user_defaults(ui: &UserInterface) {
     ui.right_frame_pane.set_position(config.right_frame_split);
     ui.left_frame_pane.set_position(config.left_frame_split);
     ui.units_widget.set_selected(config.units_index);
+    ui.tile_source_widget
+        .set_selected(config.tile_source_widget_index);
 }
 
 // #####################################################################
@@ -967,10 +989,14 @@ fn build_map(data: &Vec<FitDataRecord>, ui: &UserInterface, mc_rc: &Rc<MapCache>
                         .data_source(&downloader)
                         .build();
                     ui.map.set_map_source(Some(&renderer));
+                    let mut next_child = ui.logo_overlay.first_child();
+                    while let Some(child) = next_child {
+                        next_child = child.next_sibling();
+                        ui.logo_overlay.remove_overlay(&child);
+                    }
                     if tile_source.logo.is_some() {
                         ui.logo_overlay.add_overlay(&tile_source.logo.unwrap());
                     }
-
                     // Get values from fit file.
                     let run_path = &mc.run_path;
                     ui.path_layer.as_ref().unwrap().remove_all();

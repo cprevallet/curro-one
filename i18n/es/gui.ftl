@@ -10,6 +10,8 @@ MESSAGE_PERMISSIONS = Error desconocido. ¿Problema de permisos?
 MESSAGE_API_MAPTILER_SATELLITE = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_SATELLITE_KEY=?
 MESSAGE_API_MAPTILER_OUTDOOR = No se encontró ninguna clave API. Configure la variable de entorno MAPTILER_OUTDOOR_KEY=?
 
+TOOLTIP_TILE_SOURCE = Seleccione el proveedor de teselas de su mapa.
+
 TOOLTIP_TEXT_VIEW = 
     Esta sección contiene un informe de vueltas, zonas de frecuencia cardíaca e información resumida de la sesión.
     El texto se puede cortar y pegar en otras aplicaciones.

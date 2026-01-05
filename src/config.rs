@@ -30,6 +30,7 @@ pub struct WindowConfig {
     pub left_frame_split: i32,
     pub right_frame_split: i32,
     pub units_index: u32, // toml won't serialize enums, we'll use the selected DropDown
+    pub tile_source_widget_index: u32,
 }
 
 impl Default for WindowConfig {
@@ -41,6 +42,7 @@ impl Default for WindowConfig {
             left_frame_split: 200,
             right_frame_split: 200,
             units_index: 0,
+            tile_source_widget_index: 0,
         }
     }
 }

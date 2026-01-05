@@ -321,6 +321,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 right_frame_split: ui1.right_frame_pane.position(),
                 left_frame_split: ui1.left_frame_pane.position(),
                 units_index: ui1.units_widget.selected(),
+                tile_source_widget_index: ui1.tile_source_widget.selected(),
             };
             match save_config(&current_config, config_path) {
                 Ok(_) => glib::signal::Propagation::Proceed,

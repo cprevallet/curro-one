@@ -10,6 +10,8 @@ MESSAGE_PERMISSIONS = Unknown error. Permissions problem?
 MESSAGE_API_MAPTILER_SATELLITE = No API key found. Set environment variable MAPTILER_SATELLITE_KEY=?
 MESSAGE_API_MAPTILER_OUTDOOR = No API key found. Set environment variable MAPTILER_OUTDOOR_KEY=?
 
+TOOLTIP_TILE_SOURCE = Select your map's tile provider.
+
 TOOLTIP_TEXT_VIEW = 
     This section contains a report of lap, heart rate zones, and session summary information.
     The text may be cut and pasted to other applications.
