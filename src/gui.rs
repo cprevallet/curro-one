@@ -31,6 +31,15 @@ use plotters_cairo::CairoBackend;
 use std::path::Path;
 use std::rc::Rc;
 
+// Conditional compilation for directory.
+// Relative path on Windows
+#[cfg(target_os = "windows")]
+const LOGO_FILE_PATH: &str = "../icons/maptiler-logo.png";
+
+// On Linux, must match location in Cargo.toml
+#[cfg(target_os = "linux")]
+const LOGO_FILE_PATH: &str = "/usr/local/icons/maptiler-logo.png";
+
 // #####################################################################
 // ##################### OVERALL UI FUNCTIONS ##########################
 // #####################################################################
@@ -887,7 +896,7 @@ fn update_marker_layer(
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
 fn build_logo() -> gtk4::Picture {
-    let logo_file_path = Path::new("../icons/maptiler-logo.png");
+    let logo_file_path = Path::new(LOGO_FILE_PATH);
     let logo_image = gtk4::Picture::for_filename(logo_file_path);
     logo_image.set_width_request(102); // Set desired width in pixels
     logo_image.set_height_request(30); // Set desired height in pixels
