@@ -542,92 +542,62 @@ fn draw_graphs(
     let root = plotters_cairo::CairoBackend::new(&cr, (width as u32, height as u32))
         .unwrap()
         .into_drawing_area();
-    let areas = root.split_evenly((2, 3));
+    // Plot only the cache values with data in them.
+    let gc2 = Rc::clone(&gc_rc);
+    let mut graphs_with_data: Vec<&GraphAttributes> = Vec::new();
+    if gc.distance_pace.plotvals.len() != 0 {
+        graphs_with_data.push(&gc2.distance_pace);
+    };
+    if gc.distance_heart_rate.plotvals.len() != 0 {
+        graphs_with_data.push(&gc2.distance_heart_rate);
+    };
+    if gc.distance_cadence.plotvals.len() != 0 {
+        graphs_with_data.push(&gc2.distance_cadence);
+    };
+    if gc.distance_elevation.plotvals.len() != 0 {
+        graphs_with_data.push(&gc2.distance_elevation);
+    };
+    if gc.distance_temperature.plotvals.len() != 0 {
+        graphs_with_data.push(&gc2.distance_temperature);
+    };
+    let mut areas: Vec<plotters::drawing::DrawingArea<CairoBackend<'_>, plotters::coord::Shift>> =
+        Vec::new();
+    if graphs_with_data.len() == 1 {
+        areas.push(root.clone());
+    }
+    if graphs_with_data.len() == 2 {
+        areas = root.split_evenly((1, 2));
+    }
+    if graphs_with_data.len() == 3 {
+        areas = root.split_evenly((3, 1));
+    }
+    if graphs_with_data.len() == 4 {
+        areas = root.split_evenly((2, 2));
+    }
+    if graphs_with_data.len() == 5 || graphs_with_data.len() == 6 {
+        areas = root.split_evenly((2, 3));
+    }
+    let mut graph_colors: Vec<RGBColor> = Vec::new();
+    graph_colors.push(GREEN);
+    graph_colors.push(BLUE);
+    graph_colors.push(CYAN);
+    graph_colors.push(RED);
+    graph_colors.push(BROWN);
+    graph_colors.push(YELLOW);
     // Declare and initialize.
     for (a, idx) in areas.iter().zip(1..) {
-        // After this point, we should be able to construct a chart context
-        if idx == 1 {
-            if gc.distance_pace.plotvals.len() == 0 {
-                continue;
-            };
+        if (idx - 1) < graphs_with_data.len() {
             build_individual_graph(
-                &gc.distance_pace.plotvals,
-                gc.distance_pace.caption.as_str(),
-                gc.distance_pace.xlabel.as_str(),
-                gc.distance_pace.ylabel.as_str(),
-                &gc.distance_pace.plot_range,
-                &gc.distance_pace.y_formatter,
-                &GREEN,
+                &graphs_with_data[idx - 1].plotvals,
+                graphs_with_data[idx - 1].caption.as_str(),
+                graphs_with_data[idx - 1].xlabel.as_str(),
+                graphs_with_data[idx - 1].ylabel.as_str(),
+                &graphs_with_data[idx - 1].plot_range,
+                &graphs_with_data[idx - 1].y_formatter,
+                &graph_colors[idx - 1],
                 curr_adj,
                 a,
             );
-        }
-        if idx == 2 {
-            if gc.distance_heart_rate.plotvals.len() == 0 {
-                continue;
-            };
-            build_individual_graph(
-                &gc.distance_heart_rate.plotvals,
-                gc.distance_heart_rate.caption.as_str(),
-                gc.distance_heart_rate.xlabel.as_str(),
-                gc.distance_heart_rate.ylabel.as_str(),
-                &gc.distance_heart_rate.plot_range,
-                &gc.distance_heart_rate.y_formatter,
-                &BLUE,
-                curr_adj,
-                a,
-            )
-        }
-        if idx == 3 {
-            if gc.distance_cadence.plotvals.len() == 0 {
-                continue;
-            };
-            build_individual_graph(
-                &gc.distance_cadence.plotvals,
-                gc.distance_cadence.caption.as_str(),
-                gc.distance_cadence.xlabel.as_str(),
-                gc.distance_cadence.ylabel.as_str(),
-                &gc.distance_cadence.plot_range,
-                &gc.distance_cadence.y_formatter,
-                &CYAN,
-                curr_adj,
-                a,
-            )
-        }
-        if idx == 4 {
-            if gc.distance_elevation.plotvals.len() == 0 {
-                continue;
-            };
-            build_individual_graph(
-                &gc.distance_elevation.plotvals,
-                gc.distance_elevation.caption.as_str(),
-                gc.distance_elevation.xlabel.as_str(),
-                gc.distance_elevation.ylabel.as_str(),
-                &gc.distance_elevation.plot_range,
-                &gc.distance_elevation.y_formatter,
-                &RED,
-                curr_adj,
-                a,
-            )
-        }
-        if idx == 5 {
-            if gc.distance_temperature.plotvals.len() == 0 {
-                continue;
-            };
-            build_individual_graph(
-                &gc.distance_temperature.plotvals,
-                gc.distance_temperature.caption.as_str(),
-                gc.distance_temperature.xlabel.as_str(),
-                gc.distance_temperature.ylabel.as_str(),
-                &gc.distance_temperature.plot_range,
-                &gc.distance_temperature.y_formatter,
-                &BROWN,
-                curr_adj,
-                a,
-            )
-        }
-        if idx == 6 {
-            break;
         }
     }
 
