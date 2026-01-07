@@ -575,7 +575,7 @@ fn draw_graphs(
         areas = root.split_evenly((2, 2));
     }
     if graphs_with_data.len() == 5 || graphs_with_data.len() == 6 {
-        areas = root.split_evenly((2, 3));
+        areas = root.split_evenly((3, 2));
     }
     let mut graph_colors: Vec<RGBColor> = Vec::new();
     graph_colors.push(GREEN);
