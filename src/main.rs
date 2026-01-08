@@ -374,6 +374,64 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     app.add_action(&backward_action);
     app.set_accels_for_action("app.backward", &["<Control>b"]);
 
+    // Action for Page Down
+    let page_down_action = gio::SimpleAction::new("page_down", None);
+    page_down_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let adj = ui1.scrolled_window.vadjustment();
+            let new_val = (adj.value() + adj.page_increment()).min(adj.upper() - adj.page_size());
+            adj.set_value(new_val);
+        }
+    ));
+    app.add_action(&page_down_action);
+    app.set_accels_for_action("app.page_up", &["Page_Up"]);
+
+    // Action for Page Up
+    let page_up_action = gio::SimpleAction::new("page_up", None);
+    page_up_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let adj = ui1.scrolled_window.vadjustment();
+            let new_val = (adj.value() - adj.page_increment()).max(adj.lower());
+            adj.set_value(new_val);
+        }
+    ));
+    app.add_action(&page_up_action);
+    app.set_accels_for_action("app.page_down", &["Page_Down"]);
+
+    let map_zoom_in_action = gio::SimpleAction::new("map_zoom_in", None);
+    map_zoom_in_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let viewport = ui1.map.viewport().unwrap();
+            let current_zoom = viewport.zoom_level();
+            if current_zoom < 20.0 {
+                viewport.set_zoom_level(current_zoom + 1.0);
+            }
+        }
+    )); // map zoom in action
+    app.add_action(&map_zoom_in_action);
+    app.set_accels_for_action("app.map_zoom_in", &["<Control>F5"]);
+
+    let map_zoom_out_action = gio::SimpleAction::new("map_zoom_out", None);
+    map_zoom_out_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let viewport = ui1.map.viewport().unwrap();
+            let current_zoom = viewport.zoom_level();
+            if current_zoom > 1.0 {
+                viewport.set_zoom_level(current_zoom - 1.0);
+            }
+        }
+    )); //map zoom out action
+    app.add_action(&map_zoom_out_action);
+    app.set_accels_for_action("app.map_zoom_out", &["<Control>F6"]);
+
     let y_zoom_in_action = gio::SimpleAction::new("y_zoom_in", None);
     y_zoom_in_action.connect_activate(clone!(
         #[strong]
@@ -402,35 +460,4 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     )); // y_zoom_out-action
     app.add_action(&y_zoom_out_action);
     app.set_accels_for_action("app.y_zoom_out", &["<Control>F8"]);
-
-    let map_zoom_in_action = gio::SimpleAction::new("map_zoom_in", None);
-    map_zoom_in_action.connect_activate(clone!(
-        #[strong]
-        ui1,
-        move |_, _| {
-            let viewport = ui1.map.viewport().unwrap();
-            let current_zoom = viewport.zoom_level();
-            if current_zoom < 20.0 {
-                viewport.set_zoom_level(current_zoom + 1.0);
-            }
-        }
-    ));
-    app.add_action(&map_zoom_in_action);
-    app.set_accels_for_action("app.map_zoom_in", &["<Control>F5"]);
-
-    // Zoom Out Action
-    let map_zoom_out_action = gio::SimpleAction::new("map_zoom_out", None);
-    map_zoom_out_action.connect_activate(clone!(
-        #[strong]
-        ui1,
-        move |_, _| {
-            let viewport = ui1.map.viewport().unwrap();
-            let current_zoom = viewport.zoom_level();
-            if current_zoom > 1.0 {
-                viewport.set_zoom_level(current_zoom - 1.0);
-            }
-        }
-    ));
-    app.add_action(&map_zoom_out_action);
-    app.set_accels_for_action("app.map_zoom_out", &["<Control>F6"]);
 } // build_gui
