@@ -477,4 +477,42 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     )); //units toggle action
     app.add_action(&unit_toggle_action);
     app.set_accels_for_action("app.toggle-units", &["<Primary>u"]);
+
+    // Action to cycle tile source FORWARD (Ctrl+n)
+    let tile_next_action = gio::SimpleAction::new("tile_next", None);
+    tile_next_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let n_items = ui1.tile_source_widget.model().unwrap().n_items();
+            if n_items > 0 {
+                let current = ui1.tile_source_widget.selected();
+                let next = (current + 1) % n_items; // Wrap to 0 after last item
+                ui1.tile_source_widget.set_selected(next);
+            }
+        }
+    ));
+    app.add_action(&tile_next_action);
+    app.set_accels_for_action("app.tile_next", &["<Primary>n"]);
+
+    // Action to cycle tile source BACKWARD (Ctrl+p)
+    let tile_prev_action = gio::SimpleAction::new("tile_prev", None);
+    tile_prev_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let n_items = ui1.tile_source_widget.model().unwrap().n_items();
+            if n_items > 0 {
+                let current = ui1.tile_source_widget.selected();
+                let prev = if current == 0 {
+                    n_items - 1
+                } else {
+                    current - 1
+                };
+                ui1.tile_source_widget.set_selected(prev);
+            }
+        }
+    ));
+    app.add_action(&tile_prev_action);
+    app.set_accels_for_action("app.tile_prev", &["<Primary>p"]);
 } // build_gui
