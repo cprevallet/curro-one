@@ -22,7 +22,7 @@
  *
  * - Craig S. Prevallet, December, 2025
  */
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 mod config;
 mod data;
 mod gui;
