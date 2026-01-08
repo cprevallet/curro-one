@@ -258,10 +258,11 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     ui1.btn.set_action_name(Some("app.open"));
     app.set_accels_for_action("app.open", &["<Control>o"]);
 
-    ui1.about_btn.connect_clicked(clone!(
+    let about_action = gio::SimpleAction::new("about", None);
+    about_action.connect_activate(clone!(
         #[strong]
         ui1,
-        move |_| {
+        move |_, _| {
             // The compile-time::datetime_str!() macro provides a &str literal at compile time,
             // e.g., "2025-12-10T18:36:25Z".
             let datetime_raw = compile_time::datetime_str!();
@@ -312,7 +313,10 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
                 .build();
             dialog.present();
         }
-    )); // about-btn-clicked
+    )); // about-action
+    app.add_action(&about_action);
+    app.set_accels_for_action("app.about", &["<Primary>a"]);
+    ui1.about_btn.set_action_name(Some("app.about"));
 
     ui1.win.connect_close_request(clone!(
         #[strong]
