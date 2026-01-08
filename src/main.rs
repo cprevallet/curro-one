@@ -354,7 +354,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); // forward-action
     app.add_action(&forward_action);
-    app.set_accels_for_action("app.forward", &["<Control>f"]);
+    app.set_accels_for_action("app.forward", &["<Primary>f"]);
 
     let backward_action = gio::SimpleAction::new("backward", None);
     backward_action.connect_activate(clone!(
@@ -372,7 +372,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); // backward-action
     app.add_action(&backward_action);
-    app.set_accels_for_action("app.backward", &["<Control>b"]);
+    app.set_accels_for_action("app.backward", &["<Primary>b"]);
 
     // Action for Page Down
     let page_down_action = gio::SimpleAction::new("page_down", None);
@@ -415,7 +415,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); // map zoom in action
     app.add_action(&map_zoom_in_action);
-    app.set_accels_for_action("app.map_zoom_in", &["<Control>F5"]);
+    app.set_accels_for_action("app.map_zoom_in", &["<Primary>F5"]);
 
     let map_zoom_out_action = gio::SimpleAction::new("map_zoom_out", None);
     map_zoom_out_action.connect_activate(clone!(
@@ -430,7 +430,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); //map zoom out action
     app.add_action(&map_zoom_out_action);
-    app.set_accels_for_action("app.map_zoom_out", &["<Control>F6"]);
+    app.set_accels_for_action("app.map_zoom_out", &["<Primary>F6"]);
 
     let y_zoom_in_action = gio::SimpleAction::new("y_zoom_in", None);
     y_zoom_in_action.connect_activate(clone!(
@@ -445,7 +445,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); // y_zoom_in-action
     app.add_action(&y_zoom_in_action);
-    app.set_accels_for_action("app.y_zoom_in", &["<Control>F7"]);
+    app.set_accels_for_action("app.y_zoom_in", &["<Primary>F7"]);
     let y_zoom_out_action = gio::SimpleAction::new("y_zoom_out", None);
     y_zoom_out_action.connect_activate(clone!(
         #[strong]
@@ -459,5 +459,22 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
         }
     )); // y_zoom_out-action
     app.add_action(&y_zoom_out_action);
-    app.set_accels_for_action("app.y_zoom_out", &["<Control>F8"]);
+    app.set_accels_for_action("app.y_zoom_out", &["<Primary>F8"]);
+
+    let unit_toggle_action = gio::SimpleAction::new("toggle-units", None);
+    unit_toggle_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            // Get current index: 0 is usually US, 1 is Metric (based on your Units enum)
+            let current = ui1.units_widget.selected();
+            if current == 0 {
+                ui1.units_widget.set_selected(1);
+            } else {
+                ui1.units_widget.set_selected(0);
+            }
+        }
+    )); //units toggle action
+    app.add_action(&unit_toggle_action);
+    app.set_accels_for_action("app.toggle-units", &["<Primary>u"]);
 } // build_gui
