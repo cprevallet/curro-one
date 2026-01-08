@@ -22,7 +22,7 @@
  *
  * - Craig S. Prevallet, December, 2025
  */
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 mod config;
 mod data;
 mod gui;
@@ -41,7 +41,7 @@ use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
     ButtonsType, FileChooserAction, FileChooserNative, License, MessageDialog, MessageType,
-    ResponseType,
+    ResponseType, gio,
 };
 use libadwaita::{Application, WindowTitle};
 use semver::{BuildMetadata, Prerelease};
@@ -199,8 +199,6 @@ fn build_gui_no_files(app: &Application) {
 fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     // Instantiate the views.
     let ui_original = instantiate_ui(app);
-    // Read configuration file and default values.
-
     // Create a new reference count for the user_interface structure.
     // This gets a little tricky.  We need to create a new reference
     // counted pointer, ui_rc, from the original object and clone it
@@ -216,10 +214,11 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     }
 
     // Handle callbacks for btn and about_btn.
-    ui1.btn.connect_clicked(clone!(
+    let open_action = gio::SimpleAction::new("open", None);
+    open_action.connect_activate(clone!(
         #[strong]
         ui1,
-        move |_| {
+        move |_, _| {
             // 1. Create the Native Dialog
             // Notice the arguments: Title, Parent Window, Action, Accept Label, Cancel Label
             let native = FileChooserNative::new(
@@ -251,7 +250,12 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
             // 3. Show the dialog
             native.show();
         },
-    )); //button-connect-clicked
+    )); //open action
+
+    // Connect the action to the widget and the shortcut key.
+    app.add_action(&open_action);
+    ui1.btn.set_action_name(Some("app.open"));
+    app.set_accels_for_action("app.open", &["<Control>o"]);
 
     ui1.about_btn.connect_clicked(clone!(
         #[strong]

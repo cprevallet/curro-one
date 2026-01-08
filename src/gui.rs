@@ -308,7 +308,6 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.about_btn.set_label(&ui.about_label);
     ui.units_widget.set_model(Some(&ui.uom));
     ui.tile_source_widget.set_model(Some(&ui.tile_source));
-    // TODO remove this when the graphical interface is ready.
     ui.tile_source_widget.set_selected(0);
     ui.tile_source_widget
         .set_tooltip_text(Some(&tr("TOOLTIP_TILE_SOURCE", None)));
