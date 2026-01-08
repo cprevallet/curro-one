@@ -16,36 +16,44 @@ MESSAGE_API_MAPTILER_OUTDOOR =
     Définissez la variable d'environnement MAPTILER_OUTDOOR_KEY=?
     Reportez-vous à la documentation pour les procédures d'obtention et d'installation de la clé.
 
-TOOLTIP_TILE_SOURCE = Sélectionnez le fournisseur de fonds de carte.
+TOOLTIP_TILE_SOURCE = Sélectionnez le fournisseur de fonds de carte. (Ctrl+N, Ctrl+P)
 
 TOOLTIP_TEXT_VIEW = 
     Cette section contient un rapport sur les tours, les zones de fréquence cardiaque et les informations de résumé de session.
+    (Page préc, Page suiv)
+
     Le texte peut être copié et collé dans d'autres applications.
 
-TOOLTIP_ABOUT_BUTTON = Afficher les crédits du programme, la licence et les informations sur le droit d'auteur.
+TOOLTIP_ABOUT_BUTTON = Afficher les crédits du programme, la licence et les informations sur le droit d'auteur. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
-    Ouvrir un fichier Garmin Activity Fit.
+    Ouvrir un fichier Garmin Activity Fit. (Ctrl+O)
+
     Veuillez vous assurer d'avoir d'abord copié le fichier de la montre vers le système de fichiers.
 
 TOOLTIP_UNITS_DROPDOWN = 
-    Sélectionnez votre système d'unités préféré.
+    Sélectionnez votre système d'unités préféré. (Ctrl+U)
+
     Ce sera le système par défaut lors du prochain démarrage du programme, mais il peut être modifié à tout moment.
 
 TOOLTIP_POSITION_SCALE = 
     Déplacez-vous du début à la fin de votre course avec cette commande.
+    (Ctrl+F, Ctrl+B)
+    
     Des lignes apparaîtront sur les graphiques et un marqueur apparaîtra sur la carte indiquant votre position.
     Réinitialisez au début pour les supprimer.
+    
     Utilisez les flèches droite et gauche de votre clavier pour un contrôle de haute précision.
 
-TOOLTIP_ZOOM_SCALE = Zoomez sur les axes y des graphiques avec cette commande.
-
+TOOLTIP_ZOOM_SCALE = Zoomez sur les axes y des graphiques avec cette commande. (Ctrl-F7, Ctrl-F8)
 TOOLTIP_MAP_FRAME = 
     Cette section affiche un parcours basé sur les données GPS collectées par votre montre.
+    
     Regardez attentivement le coureur affiché pendant certains jours fériés pour voir un « Easter Egg » du programme.
 
 TOOLTIP_GRAPH_FRAME = 
     Cette section contient des graphiques des valeurs collectées par votre montre pendant votre activité.
+    
     Les valeurs affichées dépendent des capteurs pris en charge par votre montre (fréquence cardiaque, altimètre, etc.).
 
 GRAPH_CAPTION_PACE = Allure

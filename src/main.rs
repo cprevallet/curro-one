@@ -256,7 +256,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     // Connect the action to the widget and the shortcut key.
     app.add_action(&open_action);
     ui1.btn.set_action_name(Some("app.open"));
-    app.set_accels_for_action("app.open", &["<Control>o"]);
+    app.set_accels_for_action("app.open", &["<Primary>o"]);
 
     let about_action = gio::SimpleAction::new("about", None);
     about_action.connect_activate(clone!(

@@ -17,36 +17,44 @@ MESSAGE_API_MAPTILER_OUTDOOR =
     Configure la variable de entorno MAPTILER_OUTDOOR_KEY=?
     Consulte la documentación sobre cómo obtener e instalar una clave.
 
-TOOLTIP_TILE_SOURCE = Seleccione el proveedor de teselas de su mapa.
+TOOLTIP_TILE_SOURCE = Seleccione el proveedor de teselas de su mapa.  (Ctrl+N, Ctrl+P)
 
 TOOLTIP_TEXT_VIEW = 
     Esta sección contiene un informe de vueltas, zonas de frecuencia cardíaca e información resumida de la sesión.
+    (Re Pág, Av Pág)
+    
     El texto se puede cortar y pegar en otras aplicaciones.
 
-TOOLTIP_ABOUT_BUTTON = Mostrar créditos del programa, licencia e información de derechos de autor.
+TOOLTIP_ABOUT_BUTTON = Mostrar créditos del programa, licencia e información de derechos de autor. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
-    Abrir un archivo de actividad de Garmin (FIT).
+    Abrir un archivo de actividad de Garmin (FIT). (Ctrl+O)
+
     Asegúrese de haber copiado primero el archivo del reloj al sistema de archivos.
 
 TOOLTIP_UNITS_DROPDOWN = 
-    Seleccione su sistema de unidades preferido.
+    Seleccione su sistema de unidades preferido. (Ctrl+U)
+
     Este será el valor predeterminado la próxima vez que inicie el programa, pero se puede cambiar en cualquier momento.
 
 TOOLTIP_POSITION_SCALE = 
     Muévase desde el principio hasta el final de su carrera con este control.
+    (Ctrl+F, Ctrl+B)
+    
     Aparecerán líneas finas en los gráficos y un marcador en el mapa indicando su posición.
     Restablecer al principio para eliminar.
+    
     Utilice las flechas derecha e izquierda del teclado para un control de alta precisión.
 
-TOOLTIP_ZOOM_SCALE = Zoom a los ejes y de los gráficos con este control.
-
+TOOLTIP_ZOOM_SCALE = Zoom a los ejes y de los gráficos con este control. (Ctrl-F7, Ctrl-F8)
 TOOLTIP_MAP_FRAME = 
     Esta sección muestra una ruta de carrera basada en los datos de GPS recopilados por su reloj.
+
     Mire cuidadosamente al corredor que se muestra durante ciertos días festivos para ver un "Huevo de Pascua" del programa.
 
 TOOLTIP_GRAPH_FRAME = 
     Esta sección contiene gráficos de los valores recopilados por su reloj durante su actividad.
+
     Los valores mostrados dependen de los sensores que admita su reloj (frecuencia cardíaca, altímetro, etc.).
 
 GRAPH_CAPTION_PACE = Ritmo

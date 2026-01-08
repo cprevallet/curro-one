@@ -17,36 +17,45 @@ MESSAGE_API_MAPTILER_OUTDOOR =
     Set environment variable MAPTILER_OUTDOOR_KEY=?
     Refer to the documentation for instructions on how to obtain and install the key.
 
-TOOLTIP_TILE_SOURCE = Select your map's tile provider.
+TOOLTIP_TILE_SOURCE = Select your map's tile provider. (Ctrl+N, Ctrl+P)
 
 TOOLTIP_TEXT_VIEW = 
     This section contains a report of lap, heart rate zones, and session summary information.
+    (PageUp, PageDown)
+
     The text may be cut and pasted to other applications.
 
-TOOLTIP_ABOUT_BUTTON = Show program credits, license, and copyright information.
+TOOLTIP_ABOUT_BUTTON = Show program credits, license, and copyright information. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
-    Open a Garmin Activity Fit file.
-    Please ensure you have copied the file from the watch to the file system first.
+    Open a Garmin Activity Fit file. (Ctrl+O)
 
+    Please ensure you have copied the file from the watch to the file system first.
+    
 TOOLTIP_UNITS_DROPDOWN = 
-    Select your preferred unit system.
+    Select your preferred unit system. (Ctrl+U)
+
     This will be the default next time you start the program but can be changed anytime.
 
 TOOLTIP_POSITION_SCALE = 
     Move from the beginning to the end of your run with this control.
+    (Ctrl+F, Ctrl+B)
+    
     Hairlines will appear on the graphs and a marker will appear on the map indicating your position.
     Reset to the beginning to remove.
+    
     Use your keyboard right and left arrows for high precision control.
 
-TOOLTIP_ZOOM_SCALE = Zoom the graphs' y-axes with this control.
+TOOLTIP_ZOOM_SCALE = Zoom the graphs' y-axes with this control. (Ctrl-F7, Ctrl-F8)
 
 TOOLTIP_MAP_FRAME = 
     This section displays a run path based on GPS data collected by your watch.
+
     Look carefully at the runner displayed during certain holidays to see a program Easter Egg.
 
 TOOLTIP_GRAPH_FRAME = 
     This section contains graphs of values collected by your watch during your activity.
+
     Displayed values are dependent on the sensors your watch supports (heart rate, altimeter, etc.).
 
 GRAPH_CAPTION_PACE = Pace
