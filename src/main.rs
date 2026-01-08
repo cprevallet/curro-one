@@ -188,6 +188,7 @@ fn tie_it_all_together(file: &mut File, ui: &Rc<UserInterface>) {
         let gc_rc = Rc::new(graph_cache);
         construct_views_from_data(&ui, &data, &mc_rc, &gc_rc);
         connect_interactive_widgets(&ui, &data, &mc_rc, &gc_rc);
+        ui.curr_pos_scale.grab_focus();
     }
 }
 
@@ -207,7 +208,6 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
     ui_rc.win.present();
-    ui1.curr_pos_scale.grab_focus();
 
     // If the user has provided a file name on the command line - use the first file.
     if files.len() > 0 {
@@ -337,4 +337,40 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
             }
         }
     )); //window-close
+
+    let forward_action = gio::SimpleAction::new("forward", None);
+    forward_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let adj = ui1.curr_pos_scale.adjustment();
+            let new_val = adj.value() + adj.step_increment();
+            if new_val <= adj.upper() {
+                adj.set_value(new_val);
+                // Ensure focus stays or returns to the scale so
+                // the user can continue using arrow keys too.
+                ui1.curr_pos_scale.grab_focus();
+            }
+        }
+    )); // forward-action
+    app.add_action(&forward_action);
+    app.set_accels_for_action("app.forward", &["<Control>f"]);
+
+    let backward_action = gio::SimpleAction::new("backward", None);
+    backward_action.connect_activate(clone!(
+        #[strong]
+        ui1,
+        move |_, _| {
+            let adj = ui1.curr_pos_scale.adjustment();
+            let new_val = adj.value() - adj.step_increment();
+            if new_val <= adj.upper() {
+                adj.set_value(new_val);
+                // Ensure focus stays or returns to the scale so
+                // the user can continue using arrow keys too.
+                ui1.curr_pos_scale.grab_focus();
+            }
+        }
+    )); // backward-action
+    app.add_action(&backward_action);
+    app.set_accels_for_action("app.backward", &["<Control>b"]);
 } // build_gui
