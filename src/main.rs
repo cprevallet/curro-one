@@ -207,6 +207,7 @@ fn build_gui(app: &Application, files: &[gtk4::gio::File], _: &str) {
     let ui_rc = Rc::new(ui_original);
     let ui1 = Rc::clone(&ui_rc);
     ui_rc.win.present();
+    ui1.curr_pos_scale.grab_focus();
 
     // If the user has provided a file name on the command line - use the first file.
     if files.len() > 0 {
