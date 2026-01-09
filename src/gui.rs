@@ -20,13 +20,13 @@ use gtk4::{
     TextView, gdk,
 };
 use libadwaita::prelude::*;
-use libadwaita::{Application, ApplicationWindow, WindowTitle};
+use libadwaita::{Application, ApplicationWindow, StyleManager, WindowTitle};
 use libshumate::prelude::*;
 use libshumate::{
     Coordinate, Marker, MarkerLayer, PathLayer, RasterRenderer, SimpleMap, TileDownloader,
 };
 use plotters::prelude::*;
-use plotters::style::full_palette::{BROWN, CYAN, GREY_600, GREY_800};
+use plotters::style::full_palette::{BROWN, CYAN, GREY_200, GREY_400, GREY_600, GREY_800};
 use plotters_cairo::CairoBackend;
 use std::path::Path;
 use std::rc::Rc;
@@ -616,7 +616,11 @@ fn build_individual_graph(
     curr_adj: &Adjustment,
     a: &plotters::drawing::DrawingArea<CairoBackend<'_>, plotters::coord::Shift>,
 ) {
-    let caption_style = ("sans-serif", 16, &GREY_800).into_text_style(a);
+    let is_dark = StyleManager::default().is_dark();
+    let mut caption_style = ("sans-serif", 16, &GREY_800).into_text_style(a);
+    if is_dark {
+        caption_style = ("sans-serif", 16, &GREY_200).into_text_style(a);
+    }
     let mut chart = ChartBuilder::on(&a)
         // Set the caption of the chart
         .caption(caption, caption_style)
@@ -627,7 +631,10 @@ fn build_individual_graph(
         // Finally attach a coordinate on the drawing area and make a chart context
         .build_cartesian_2d(plot_range.clone().0, plot_range.clone().1)
         .unwrap();
-    let axis_text_style = ("sans-serif", 10, &GREY_800).into_text_style(a);
+    let mut axis_text_style = ("sans-serif", 10, &GREY_800).into_text_style(a);
+    if is_dark {
+        axis_text_style = ("sans-serif", 10, &GREY_200).into_text_style(a);
+    }
     let light_line_style = ShapeStyle {
         color: color.mix(0.05),
         filled: false,
@@ -638,12 +645,21 @@ fn build_individual_graph(
         filled: false,
         stroke_width: 2,
     };
-    let axis_style = ShapeStyle {
+    let mut axis_style = ShapeStyle {
         // color: color.mix(0.3),
         color: GREY_600.mix(1.0),
         filled: false,
         stroke_width: 2,
     };
+    if is_dark {
+        axis_style = ShapeStyle {
+            // color: color.mix(0.3),
+            color: GREY_400.mix(1.0),
+            filled: false,
+            stroke_width: 2,
+        };
+    }
+
     let _ = chart
         .configure_mesh()
         // We can customize the maximum number of labels allowed for each axis
@@ -696,7 +712,10 @@ fn build_individual_graph(
             .unwrap()
             .label(mylabel);
 
-        let label_text_style = ("sans-serif", 10, &GREY_600).into_text_style(a);
+        let mut label_text_style = ("sans-serif", 10, &GREY_600).into_text_style(a);
+        if is_dark {
+            label_text_style = ("sans-serif", 10, &GREY_400).into_text_style(a);
+        }
         chart
             .configure_series_labels()
             .position(SeriesLabelPosition::UpperLeft)
