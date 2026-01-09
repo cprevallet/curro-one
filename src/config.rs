@@ -13,6 +13,7 @@ pub const AUTHOR: &str = "Craig S. Prevallet <penguintx@hotmail.com>";
 pub const ARTIST1: &str = "Amos Kofi Commey";
 pub const TESTER1: &str = "Gabriel A. Prevallet";
 pub const TESTER2: &str = "Jacob Thymann Nielsen";
+pub const TESTER3: &str = "Tony Castronovo";
 pub const SETTINGSFILE: &str = "siliconsneaker2_settings.toml";
 
 // Unit of measure system.
