@@ -23,8 +23,6 @@ TOOLTIP_TEXT_VIEW =
     This section contains a report of lap, heart rate zones, and session summary information.
     (PageUp, PageDown)
 
-    The text may be cut and pasted to other applications.
-
 TOOLTIP_ABOUT_BUTTON = Show program credits, license, and copyright information. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
@@ -76,9 +74,9 @@ LABEL_TEMP_F = Temperature (°F)
 LABEL_TEMP_C = Temperature (°C)
 
 SUMMARY_FILE_LOADED = File loaded.
-SUMMARY_SESSION_HEADER = ============================ Session ==================================
+SUMMARY_SESSION_HEADER = Session
 SUMMARY_LAP_HEADER = Lap
-SUMMARY_HR_ZONE_HEADER = =================== Time in Heart Rate Zones for Session  ========
+SUMMARY_HR_ZONE_HEADER = Time in Heart Rate Zones for Session
 SUMMARY_HR_ZONE_LABEL = Zone
 
 UNIT_FEET = feet

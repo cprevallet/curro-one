@@ -16,8 +16,7 @@ use gtk4::glib::clone;
 use gtk4::prelude::*;
 use gtk4::{
     Adjustment, Button, DrawingArea, DropDown, Frame, HeaderBar, Image, Label, MenuButton,
-    Orientation, Overlay, Popover, Scale, ScrolledWindow, StringList, StringObject, TextBuffer,
-    TextView, gdk,
+    Orientation, Overlay, Popover, Scale, ScrolledWindow, StringList, StringObject, gdk,
 };
 use libadwaita::prelude::*;
 use libadwaita::{Application, ApplicationWindow, StyleManager, WindowTitle};
@@ -117,8 +116,7 @@ pub struct UserInterface {
     pub button_box: gtk4::Box,
     pub main_pane: gtk4::Paned,
     pub btn: Button,
-    pub text_view: TextView,
-    pub text_buffer: TextBuffer,
+    pub summary_grid: gtk4::Grid,
     pub frame_left: Frame,
     pub frame_right: Frame,
     pub left_frame_pane: gtk4::Paned,
@@ -193,13 +191,14 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
             .height_request(30)
             .width_request(50)
             .build(),
-        text_view: TextView::builder()
-            .monospace(true)
-            .editable(false)
-            .left_margin(25)
-            .right_margin(25)
+        summary_grid: gtk4::Grid::builder()
+            .margin_start(10)
+            .margin_end(10)
+            .margin_top(10)
+            .margin_bottom(10)
+            .row_spacing(6)
+            .column_spacing(20)
             .build(),
-        text_buffer: TextBuffer::builder().build(),
         frame_left: Frame::builder().margin_bottom(5).build(),
         frame_right: Frame::builder().build(),
         left_frame_pane: gtk4::Paned::builder()
@@ -311,10 +310,9 @@ pub fn instantiate_ui(app: &Application) -> UserInterface {
     ui.tile_source_widget.set_selected(0);
     ui.tile_source_widget
         .set_tooltip_text(Some(&tr("TOOLTIP_TILE_SOURCE", None)));
-    ui.text_view.set_buffer(Some(&ui.text_buffer));
-    ui.text_view
+    ui.summary_grid
         .set_tooltip_text(Some(&tr("TOOLTIP_TEXT_VIEW", None)));
-    ui.scrolled_window.set_child(Some(&ui.text_view));
+    ui.scrolled_window.set_child(Some(&ui.summary_grid));
     ui.about_btn
         .set_tooltip_text(Some(&tr("TOOLTIP_ABOUT_BUTTON", None)));
     ui.menu_box.append(&ui.units_widget);
@@ -1120,278 +1118,159 @@ fn pretty_field(fld: &FitDataField) -> String {
         _ => return "".to_string(),
     }
 }
-
-// Convert a value to user-defined units and return a formatted string when supplied a field and units.
-fn format_string_for_field(fld: &FitDataField, user_unit: &Units) -> Option<String> {
+fn format_value_only(fld: &FitDataField, user_unit: &Units) -> Option<String> {
     match fld.name() {
         "start_position_lat" | "start_position_long" | "end_position_lat" | "end_position_long" => {
             let result: Result<i64, _> = fld.value().try_into();
             match result {
-                Ok(semi) => {
-                    let degrees = semi_to_degrees(semi as f32);
-                    return Some(format!("{:<30}: {degrees:<6.3}°\n", pretty_field(fld)));
-                }
-                Err(_) => return None,
+                Ok(semi) => Some(format!("{:.3}°", semi_to_degrees(semi as f32))), //
+                Err(_) => None,
             }
-        }
-
-        "total_strides"
-        | "total_calories"
-        | "avg_heart_rate"
-        | "max_heart_rate"
-        | "avg_running_cadence"
-        | "max_running_cadence"
-        | "total_training_effect"
-        | "first_lap_index"
-        | "num_laps"
-        | "avg_fractional_cadence"
-        | "max_fractional_cadence"
-        | "total_anaerobic_training_effect"
-        | "sport"
-        | "sub_sport"
-        | "timestamp"
-        | "start_time" => {
-            return Some(format!(
-                "{:<30}: {:<#} {:<}\n",
-                pretty_field(fld),
-                fld.value(),
-                fld.units()
-            ));
         }
         "total_ascent" | "total_descent" => {
-            let result: Result<f64, _> = fld.value().clone().try_into();
-            match result {
-                Ok(val) => {
-                    let val_cvt = cvt_altitude(val as f32, &user_unit);
-                    match user_unit {
-                        Units::US => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_FEET", None),
-                            ));
-                        }
-                        Units::Metric => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_METERS", None),
-                            ));
-                        }
-                        Units::None => {
-                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
-                        }
-                    }
-                }
-                Err(_) => return None,
-            }
-        }
-        "total_distance" => {
-            let result: Result<f64, _> = fld.value().clone().try_into();
-            match result {
-                Ok(val) => {
-                    let val_cvt = cvt_distance(val as f32, &user_unit);
-                    match user_unit {
-                        Units::US => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_MILES", None),
-                            ));
-                        }
-                        Units::Metric => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_KM", None),
-                            ));
-                        }
-                        Units::None => {
-                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
-                        }
-                    }
-                }
-                Err(_) => return None,
-            }
-        }
-        "total_elapsed_time" | "total_timer_time" => {
-            let result: Result<f64, _> = fld.value().clone().try_into();
-            match result {
-                Ok(val) => {
-                    let val_cvt = cvt_elapsed_time(val as f32);
-                    return Some(format!(
-                        "{:<30}: {:01}h:{:02}m:{:02}s\n",
-                        pretty_field(fld),
-                        val_cvt.0,
-                        val_cvt.1,
-                        val_cvt.2
-                    ));
-                }
-                Err(_) => return None,
-            }
+            let val: f64 = fld.value().clone().try_into().ok()?;
+            let val_cvt = cvt_altitude(val as f32, user_unit);
+            let unit = match user_unit {
+                Units::US => tr("UNIT_FEET", None), // or "ft"
+                _ => tr("UNIT_METERS", None),       // or "m"
+            };
+            Some(format!("{:.0} {}", val_cvt, unit))
         }
         "min_temperature" | "max_temperature" | "avg_temperature" => {
-            let result: Result<i64, _> = fld.value().clone().try_into();
-            match result {
-                Ok(val) => {
-                    let val_cvt = cvt_temperature(val as f32, &user_unit);
-                    match user_unit {
-                        Units::US => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                "°F"
-                            ));
-                        }
-                        Units::Metric => {
-                            return Some(format!(
-                                "{:<30}: {:<.2} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                "°C"
-                            ));
-                        }
-                        Units::None => {
-                            return Some(format!("{:<30}: {:<.2} {:<}\n", fld.name(), val_cvt, ""));
-                        }
-                    }
-                }
-                Err(_) => return None,
-            }
+            let val: i64 = fld.value().clone().try_into().ok()?;
+            let val_cvt = cvt_temperature(val as f32, user_unit);
+            let unit = match user_unit {
+                Units::US => "°F",
+                _ => "°C",
+            };
+            Some(format!("{:.1} {}", val_cvt, unit))
+        }
+        "total_distance" => {
+            let val: f64 = fld.value().clone().try_into().ok()?;
+            let val_cvt = cvt_distance(val as f32, user_unit);
+            let unit = if matches!(user_unit, Units::US) {
+                tr("UNIT_MILES", None)
+            } else {
+                tr("UNIT_KM", None)
+            };
+            Some(format!("{:.2} {}", val_cvt, unit))
+        }
+        "total_elapsed_time" | "total_timer_time" => {
+            let val: f64 = fld.value().clone().try_into().ok()?;
+            let (h, m, s) = cvt_elapsed_time(val as f32);
+            Some(format!("{:01}h:{:02}m:{:02}s", h, m, s))
         }
         "enhanced_avg_speed" | "enhanced_max_speed" => {
-            let result: Result<f64, _> = fld.value().clone().try_into();
-            match result {
-                Ok(val) => {
-                    let decimal_val = cvt_pace(val as f32, &user_unit);
-                    let mins = decimal_val.trunc();
-                    let secs = decimal_val.fract() * 60.0;
-                    let val_cvt = format!("{:02.0}:{:02.0}", mins, secs);
-                    match user_unit {
-                        Units::US => {
-                            return Some(format!(
-                                "{:<30}: {:<} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_PACE_US", None),
-                            ));
-                        }
-                        Units::Metric => {
-                            return Some(format!(
-                                "{:<30}: {:<} {:<}\n",
-                                pretty_field(fld),
-                                val_cvt,
-                                tr("UNIT_PACE_METRIC", None),
-                            ));
-                        }
-                        Units::None => {
-                            return Some(format!("{:<30}: {:<} {:<}\n", fld.name(), val_cvt, ""));
-                        }
-                    }
-                }
-                Err(_) => return None,
+            let val: f64 = fld.value().clone().try_into().ok()?;
+            let decimal_val = cvt_pace(val as f32, user_unit);
+            let (mins, secs) = (decimal_val.trunc(), decimal_val.fract() * 60.0);
+            let unit = if matches!(user_unit, Units::US) {
+                tr("UNIT_PACE_US", None)
+            } else {
+                tr("UNIT_PACE_METRIC", None)
+            };
+            Some(format!("{:02.0}:{:02.0} {}", mins, secs, unit))
+        }
+        "avg_heart_rate" | "max_heart_rate" | "total_calories" => {
+            Some(format!("{} {}", fld.value(), fld.units()))
+        }
+        _ => {
+            let p_field = pretty_field(fld);
+            if p_field.is_empty() {
+                None
+            } else {
+                Some(format!("{}", fld.value()))
             }
         }
-        _ => return None, // matches other patterns
     }
 }
-
 // Build a summary.
 fn build_summary(data: &Vec<FitDataRecord>, ui: &UserInterface) {
-    // Get the enumerated value for the unit system the user selected.
     let user_unit = get_unit_system(&ui.units_widget);
-    ui.text_buffer.set_text(&tr("SUMMARY_FILE_LOADED", None));
-    // Clear out anything in the buffer.
-    let mut start = ui.text_buffer.start_iter();
-    let mut end = ui.text_buffer.end_iter();
-    ui.text_buffer.delete(&mut start, &mut end);
-    let mut lap_index: u8 = 0;
-    let mut lap_str: String;
+    let grid = &ui.summary_grid;
+
+    // Clear the grid before rebuilding
+    while let Some(child) = grid.first_child() {
+        grid.remove(&child);
+    }
+
+    let mut row_idx = 0;
+
+    // Helper to add rows: Column 0 is Label, Column 1 is Value
+    let mut add_row = |key: &str, value: &str, is_header: bool| {
+        let key_label = Label::builder().halign(gtk4::Align::Start).build();
+        let val_label = Label::builder()
+            .halign(gtk4::Align::Start)
+            .label(value)
+            .build();
+
+        if is_header {
+            // Apply bold formatting to headers
+            key_label.set_markup(&format!("<b>{}</b>", key));
+        } else {
+            key_label.set_text(key);
+        }
+
+        grid.attach(&key_label, 0, row_idx, 1, 1);
+        grid.attach(&val_label, 1, row_idx, 1, 1);
+        row_idx += 1;
+    };
+
+    // --- 1. SESSION DATA (TOP) ---
     for item in data {
-        match item.kind() {
-            MesgNum::Session => {
-                // print all the data records in FIT file
-                ui.text_buffer.insert(&mut end, "\n");
-                ui.text_buffer
-                    .insert(&mut end, &tr("SUMMARY_SESSION_HEADER", None));
-                ui.text_buffer.insert(&mut end, "\n");
-                ui.text_buffer.insert(&mut end, "\n");
-                // Retrieve the FitDataField struct.
-                for fld in item.fields().iter() {
-                    let value_str = format_string_for_field(fld, &user_unit);
-                    if value_str.is_some() {
-                        ui.text_buffer.insert(&mut end, &value_str.unwrap());
-                    }
+        if item.kind() == MesgNum::Session {
+            add_row(&tr("SUMMARY_SESSION_HEADER", None), "", true);
+            for fld in item.fields().iter() {
+                if let Some(clean_val) = format_value_only(fld, &user_unit) {
+                    add_row(&pretty_field(fld), &clean_val, false);
                 }
             }
-            _ => print!("{}", ""), // matches other patterns
+            add_row("", "", false); // Spacer row
         }
     }
+
+    // --- 2. TIME IN HR ZONES ---
     if let (Some(zone_times), Some(zone_limits)) = get_time_in_zone_field(data) {
-        // There are 7 zones but only 6 upper limits.
-        ui.text_buffer.insert(&mut end, "\n");
-        ui.text_buffer
-            .insert(&mut end, &tr("SUMMARY_HR_ZONE_HEADER", None));
-        ui.text_buffer.insert(&mut end, "\n");
-        ui.text_buffer.insert(&mut end, "\n");
+        add_row(&tr("SUMMARY_HR_ZONE_HEADER", None), "", true);
         for (z, val) in zone_times.iter().enumerate() {
             let val_cvt = cvt_elapsed_time(*val as f32);
-            let ll: f64;
-            let ul: f64;
-            if z == 0 {
-                ll = 0.0;
-                ul = zone_limits[z];
-            } else if z < zone_limits.len() && z > 0 {
-                ll = zone_limits[z - 1];
-                ul = zone_limits[z];
+            let ll = if z == 0 { 0.0 } else { zone_limits[z - 1] };
+            let ul = if z < zone_limits.len() {
+                zone_limits[z]
             } else {
-                ll = zone_limits[z - 1];
-                ul = 220.0;
-            }
-            let value_str = format!(
-                "{:<5}{:<} ({:>3}-{:>3} bpm): {:01}h:{:02}m:{:02}s\n",
+                220.0
+            };
+
+            let zone_label = format!(
+                "{} {} ({}-{} bpm)",
                 tr("SUMMARY_HR_ZONE_LABEL", None),
                 z,
                 ll as i32,
-                ul as i32,
-                val_cvt.0,
-                val_cvt.1,
-                val_cvt.2
+                ul as i32
             );
-            ui.text_buffer.insert(&mut end, &value_str);
+            let zone_val = format!("{:01}h:{:02}m:{:02}s", val_cvt.0, val_cvt.1, val_cvt.2);
+            add_row(&zone_label, &zone_val, false);
         }
-        ui.text_buffer.insert(&mut end, "\n");
-    };
+        add_row("", "", false); // Spacer row
+    }
+
+    // --- 3. LAP DATA ---
+    let mut lap_count = 0;
     for item in data {
-        match item.kind() {
-            MesgNum::Lap => {
-                lap_index = lap_index + 1;
-                let lap_name = &tr("SUMMARY_LAP_HEADER", None);
-                lap_str = format!(
-                    "------------------------------ {} {} ----------------------------------\n",
-                    lap_name, lap_index
-                );
-                ui.text_buffer.insert(&mut end, "\n");
-                ui.text_buffer.insert(&mut end, &lap_str);
-                ui.text_buffer.insert(&mut end, "\n");
-                // Retrieve the FitDataField struct.
-                for fld in item.fields().iter() {
-                    let value_str = format_string_for_field(fld, &user_unit);
-                    if value_str.is_some() {
-                        ui.text_buffer.insert(&mut end, &value_str.unwrap());
-                    }
+        if item.kind() == MesgNum::Lap {
+            lap_count += 1;
+            let lap_title = format!("{} {}", tr("SUMMARY_LAP_HEADER", None), lap_count);
+            add_row(&lap_title, "", true);
+
+            for fld in item.fields().iter() {
+                if let Some(clean_val) = format_value_only(fld, &user_unit) {
+                    add_row(&pretty_field(fld), &clean_val, false);
                 }
             }
-            _ => print!("{}", ""), // matches other patterns
+            add_row("", "", false); // Spacer row
         }
     }
 }
-
 // #####################################################################
 // ##################### CACHE FUNCTIONS ###############################
 // #####################################################################

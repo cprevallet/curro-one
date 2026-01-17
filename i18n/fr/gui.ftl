@@ -22,8 +22,6 @@ TOOLTIP_TEXT_VIEW =
     Cette section contient un rapport sur les tours, les zones de fréquence cardiaque et les informations de résumé de session.
     (Page préc, Page suiv)
 
-    Le texte peut être copié et collé dans d'autres applications.
-
 TOOLTIP_ABOUT_BUTTON = Afficher les crédits du programme, la licence et les informations sur le droit d'auteur. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
@@ -74,9 +72,9 @@ LABEL_TEMP_F = Température (°F)
 LABEL_TEMP_C = Température (°C)
 
 SUMMARY_FILE_LOADED = Fichier chargé.
-SUMMARY_SESSION_HEADER = ============================ Session ==================================
+SUMMARY_SESSION_HEADER = Session
 SUMMARY_LAP_HEADER = Tour
-SUMMARY_HR_ZONE_HEADER = ========= Temps dans les zones de fréquence cardiaque pour la session ========
+SUMMARY_HR_ZONE_HEADER = Temps dans les zones de fréquence cardiaque pour la session
 SUMMARY_HR_ZONE_LABEL = Zone
 
 UNIT_FEET = pieds

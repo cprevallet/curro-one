@@ -23,8 +23,6 @@ TOOLTIP_TEXT_VIEW =
     Esta sección contiene un informe de vueltas, zonas de frecuencia cardíaca e información resumida de la sesión.
     (Re Pág, Av Pág)
     
-    El texto se puede cortar y pegar en otras aplicaciones.
-
 TOOLTIP_ABOUT_BUTTON = Mostrar créditos del programa, licencia e información de derechos de autor. (Ctrl+A)
 
 TOOLTIP_OPEN_BUTTON = 
@@ -75,9 +73,9 @@ LABEL_TEMP_F = Temperatura (°F)
 LABEL_TEMP_C = Temperatura (°C)
 
 SUMMARY_FILE_LOADED = Archivo cargado.
-SUMMARY_SESSION_HEADER = ============================ Sesión ==================================
+SUMMARY_SESSION_HEADER = Sesión
 SUMMARY_LAP_HEADER = Vuelta
-SUMMARY_HR_ZONE_HEADER = =================== Tiempo en zonas de FC por sesión ========
+SUMMARY_HR_ZONE_HEADER = Tiempo en zonas de FC por sesión
 SUMMARY_HR_ZONE_LABEL = Zona
 
 UNIT_FEET = pies
