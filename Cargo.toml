@@ -68,9 +68,9 @@ assets = [
  ["./doc/Curro-One_UnInstall1.png", "/usr/local/share/doc/curro-one/Curro-One_UnInstall1.png", "644"],
  ["./doc/Curro-One_UnInstall2.png", "/usr/local/share/doc/curro-one/Curro-One_UnInstall2.png", "644"],
  ["./doc/Curro-One_UnInstall3.png", "/usr/local/share/doc/curro-one/Curro-One_UnInstall3.png", "644"],
- ["./doc/Siliconsneaker_Load.png", "/usr/local/share/doc/curro-one/Siliconsneaker_Load.png", "644"],
- ["./doc/Siliconsneaker_Opening.png", "/usr/local/share/doc/curro-one/Siliconsneaker_Opening.png", "644"],
- ["./doc/Siliconsneaker_Resized.png", "/usr/local/share/doc/curro-one/Siliconsneaker_Resized.png", "644"],
- ["./doc/Siliconsneaker_Scrunched.png", "/usr/local/share/doc/curro-one/Siliconsneaker_Scrunched.png", "644"],
+ ["./doc/Curro-One_Load.png", "/usr/local/share/doc/curro-one/Curro-One_Load.png", "644"],
+ ["./doc/Curro-One_Opening.png", "/usr/local/share/doc/curro-one/Curro-One_Opening.png", "644"],
+ ["./doc/Curro-One_Resized.png", "/usr/local/share/doc/curro-one/Curro-One_Resized.png", "644"],
+ ["./doc/Curro-One_Scrunched.png", "/usr/local/share/doc/curro-one/Curro-One_Scrunched.png", "644"],
  ["./doc/Strava.png", "/usr/local/share/doc/curro-one/Strava.png", "644"],
 ]
