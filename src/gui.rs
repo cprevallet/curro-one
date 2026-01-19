@@ -33,11 +33,40 @@ use std::rc::Rc;
 // Conditional compilation for directory.
 // Relative path on Windows
 #[cfg(target_os = "windows")]
-const LOGO_FILE_PATH: &str = "../icons/maptiler-logo.png";
+fn get_maptiler_logo_path() -> Result<String, String> {
+    // 1. Get the full path of the running .exe
+    let exe_path =
+        std::env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
+    // 2. Get the directory containing the exe
+    let exe_dir = exe_path
+        .parent()
+        .ok_or_else(|| "Could not find the executable's directory".to_string())?;
+    // 3. Build the path: [EXE_DIR] -> icons -> maptiler-logo.png
+    let logo_path = exe_dir.join("icons").join("maptiler-logo.png");
+    // 4. Verification: Does the file actually exist?
+    if !logo_path.exists() {
+        return Err(format!("Logo file not found at: {}", logo_path.display()));
+    }
+    if !logo_path.is_file() {
+        return Err("Path exists but is a directory, not the logo file".to_string());
+    }
+    // 5. Convert to String
+    logo_path
+        .into_os_string()
+        .into_string()
+        .map_err(|_| "Path contains invalid Unicode".to_string())
+}
 
 // On Linux, must match location in Cargo.toml
 #[cfg(target_os = "linux")]
-const LOGO_FILE_PATH: &str = "/usr/local/icons/maptiler-logo.png";
+fn get_maptiler_logo_path() -> Result<String, String> {
+    let installpath = Path::new("/usr/local");
+    let logo_path = installpath.join("icons").join("maptiler-logo.png");
+    logo_path
+        .into_os_string()
+        .into_string()
+        .map_err(|_| "Path contains invalid Unicode".to_string())
+}
 
 // #####################################################################
 // ##################### OVERALL UI FUNCTIONS ##########################
@@ -882,17 +911,22 @@ fn update_marker_layer(
     ui.marker_layer.as_ref().unwrap().add_marker(&marker);
 }
 fn build_logo() -> gtk4::Picture {
-    let logo_file_path = Path::new(LOGO_FILE_PATH);
-    let logo_image = gtk4::Picture::for_filename(logo_file_path);
-    logo_image.set_width_request(102); // Set desired width in pixels
-    logo_image.set_height_request(30); // Set desired height in pixels
-    logo_image.set_can_shrink(true);
-    logo_image.set_keep_aspect_ratio(true);
-    logo_image.set_halign(gtk4::Align::Center); // Position at the bottom-center
-    logo_image.set_valign(gtk4::Align::End);
-    logo_image.set_margin_start(10);
-    logo_image.set_margin_bottom(10);
-    return logo_image;
+    match get_maptiler_logo_path() {
+        Ok(path) => {
+            let logo_file_path = path;
+            let logo_image = gtk4::Picture::for_filename(logo_file_path);
+            logo_image.set_width_request(102); // Set desired width in pixels
+            logo_image.set_height_request(30); // Set desired height in pixels
+            logo_image.set_can_shrink(true);
+            logo_image.set_keep_aspect_ratio(true);
+            logo_image.set_halign(gtk4::Align::Center); // Position at the bottom-center
+            logo_image.set_valign(gtk4::Align::End);
+            logo_image.set_margin_start(10);
+            logo_image.set_margin_bottom(10);
+            return logo_image;
+        }
+        Err(e) => panic!("Error: {}", e),
+    }
 }
 fn build_tile_source(id: &String, ui: &UserInterface) -> Option<TileSource> {
     let mut tile_source: TileSource = TileSource {
