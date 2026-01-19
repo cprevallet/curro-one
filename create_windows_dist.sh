@@ -1,6 +1,6 @@
 #!/bin/sh
 # cargo build --release
-mkdir -p /c/Users/barfy/Documents/siliconsneaker2/bin/
-cp /home/penguin/siliconsneaker2/target/release/siliconsneaker2.exe /c/Users/barfy/Documents/siliconsneaker2_for_windows/bin/
+mkdir -p /c/Users/barfy/Documents/curro-one/bin/
+cp /home/penguin/curro-one/target/release/curro-one.exe /c/Users/barfy/Documents/curro-one_for_windows/bin/
 
 
