@@ -35,9 +35,9 @@ license-file = ["LICENSE", "0"]
 assets = [
  ["target/release/curro-one", "/usr/local/bin/", "755"],
  ["./icons/maptiler-logo.png", "/usr/local/icons/maptiler-logo.png", "644"],
- ["./i18n/es/gui.ftl", "/usr/local/i18n/es/gui_curro-one.ftl", "644"],
- ["./i18n/fr/gui.ftl", "/usr/local/i18n/fr/gui_curro-one.ftl", "644"],
- ["./i18n/en-US/gui.ftl", "/usr/local/i18n/en-US/gui_curro-one.ftl", "644"],
+ ["./i18n/es/gui_curro-one.ftl", "/usr/local/i18n/es/gui_curro-one.ftl", "644"],
+ ["./i18n/fr/gui_curro-one.ftl", "/usr/local/i18n/fr/gui_curro-one.ftl", "644"],
+ ["./i18n/en-US/gui_curro-one.ftl", "/usr/local/i18n/en-US/gui_curro-one.ftl", "644"],
  ["./curro-one.desktop", "/usr/share/applications/curro-one.desktop", "644"],
  ["./icons/curro-one.svg", "/usr/share/icons/hicolor/scalable/apps/curro-one.svg", "644"],
  ["README.md", "usr/local/share/doc/curro-one/README.md", "644"],
