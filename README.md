@@ -24,8 +24,12 @@ https://github.com/cprevallet/curro-one/blob/main/doc/Curro-One%20User%20Documen
 # About the name
 Curro is Latin for "I Run"
 
-# Note
-Most Garmin watches and several other brands support the FIT format. 
+# Notes
+Most Garmin watches and several other brands support the FIT format.
+
+For viewing summaries of multiple Fit files together try Curro-All:
+http://github.com/cprevallet/curro-all
+
 Curro-One is a from-the-ground-up rewrite of the original SiliconSneaker in the Rust programming language.
 
 Support for TCX files has not been provided in this version.  The original SiliconSneaker
