@@ -26,8 +26,8 @@ Support for TCX files has not been provided in this version.  The original Silic
 - Text report on numerous measurements on a per-lap and per-activity basis.
 - The program is GPL licensed and open-source.
 
-# Why?
-https://youtu.be/JY-fb4hMTX8
-
 # Documentation
 https://github.com/cprevallet/curro-one/blob/main/doc/Curro-One%20User%20Documentation.pdf
+
+# About the name
+Curro is Latin for "I Run"
