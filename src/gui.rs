@@ -36,7 +36,7 @@ use std::rc::Rc;
 fn get_maptiler_logo_path() -> Result<String, String> {
     // 1. Get the full path of the running .exe
     let mut path =
-        env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
+        std::env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
     // 2. Remove the filename
     if !path.pop() {
         return Err("Cannot find executable directory".to_string());
