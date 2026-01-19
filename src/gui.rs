@@ -35,24 +35,25 @@ use std::rc::Rc;
 #[cfg(target_os = "windows")]
 fn get_maptiler_logo_path() -> Result<String, String> {
     // 1. Get the full path of the running .exe
-    let exe_path =
-        std::env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
-    // 2. Get the directory containing the exe
-    let exe_dir = exe_path
-        .parent()
-        .ok_or_else(|| "Could not find the executable's directory".to_string())?;
-    // 3. Build the path: [EXE_DIR] -> icons -> maptiler-logo.png
-    let logo_path = exe_dir.join("icons").join("maptiler-logo.png");
-    // 4. Verification: Does the file actually exist?
-    if !logo_path.exists() {
-        return Err(format!("Logo file not found at: {}", logo_path.display()));
+    let mut path =
+        env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
+    // 2. Remove the filename
+    if !path.pop() {
+        return Err("Cannot find executable directory".to_string());
     }
-    if !logo_path.is_file() {
-        return Err("Path exists but is a directory, not the logo file".to_string());
+    // 3. Move up one more level
+    if !path.pop() {
+        return Err("Executable is at root, no sibling directory possible".to_string());
     }
-    // 5. Convert to String
-    logo_path
-        .into_os_string()
+    // 4. Navigate to the sibling "icons" folder and the file
+    path.push("icons");
+    path.push("maptiler-logo.png");
+    // 5. Verification
+    if !path.exists() {
+        return Err(format!("Logo file not found at: {}", path.display()));
+    }
+    // 6. Convert to String
+    path.into_os_string()
         .into_string()
         .map_err(|_| "Path contains invalid Unicode".to_string())
 }
